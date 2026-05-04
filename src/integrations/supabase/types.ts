@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      documents: {
+        Row: {
+          created_at: string
+          error: string | null
+          extracted_text: string | null
+          file_name: string
+          id: string
+          questions: Json | null
+          status: string
+          storage_path: string
+          summary: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          extracted_text?: string | null
+          file_name: string
+          id?: string
+          questions?: Json | null
+          status?: string
+          storage_path: string
+          summary?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          extracted_text?: string | null
+          file_name?: string
+          id?: string
+          questions?: Json | null
+          status?: string
+          storage_path?: string
+          summary?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
