@@ -124,7 +124,6 @@ export const processPdf = createServerFn({ method: "POST" })
     if (updErr) throw new Error(updErr.message);
 
     // increment uploads counter
-    await supabase.rpc as unknown; // noop placeholder to avoid unused
     const { data: prof } = await supabase
       .from("profiles")
       .select("uploads_this_month")
