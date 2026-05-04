@@ -1,6 +1,6 @@
 // Browser-only PDF text extraction using pdfjs-dist
 import * as pdfjsLib from "pdfjs-dist";
-// @ts-expect-error - vite worker import
+// @ts-ignore - vite worker import
 import PdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?worker";
 
 if (typeof window !== "undefined") {
