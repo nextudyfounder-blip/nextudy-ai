@@ -41,8 +41,8 @@ export const Route = createRootRoute({
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Nextudy" },
       { name: "twitter:description", content: "Nextudy is a SaaS web app for students to study smarter with AI-powered tools." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4628b9c1-e43b-4057-a5df-f01b79c05127/id-preview-5b3c224a--dd5012df-d502-4e7f-a026-e86c2b150f92.lovable.app-1777988327316.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4628b9c1-e43b-4057-a5df-f01b79c05127/id-preview-5b3c224a--dd5012df-d502-4e7f-a026-e86c2b150f92.lovable.app-1777988327316.png" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c8c3fc0c-1aac-406c-99f3-9aaa00e19a14/id-preview-4f308c96--dd5012df-d502-4e7f-a026-e86c2b150f92.lovable.app-1777989577758.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c8c3fc0c-1aac-406c-99f3-9aaa00e19a14/id-preview-4f308c96--dd5012df-d502-4e7f-a026-e86c2b150f92.lovable.app-1777989577758.png" },
     ],
     links: [
       {
