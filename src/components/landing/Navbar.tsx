@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Navbar() {
   const { user } = useAuth();
@@ -20,7 +21,8 @@ export function Navbar() {
           <a href="#pricing" className="hover:text-foreground transition-smooth">Pricing</a>
           <Link to="/feedback" className="hover:text-foreground transition-smooth">Feedback</Link>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
           {user ? (
             <Button variant="hero" size="sm" asChild>
               <Link to="/dashboard">Dashboard</Link>
