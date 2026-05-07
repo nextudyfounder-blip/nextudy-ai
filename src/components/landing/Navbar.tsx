@@ -15,9 +15,10 @@ export function Navbar() {
           Nextudy
         </Link>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+          <a href="#how-it-works" className="hover:text-foreground transition-smooth">How it works</a>
           <a href="#features" className="hover:text-foreground transition-smooth">Features</a>
           <a href="#pricing" className="hover:text-foreground transition-smooth">Pricing</a>
-          <a href="#faq" className="hover:text-foreground transition-smooth">FAQ</a>
+          <Link to="/feedback" className="hover:text-foreground transition-smooth">Feedback</Link>
         </div>
         <div className="flex items-center gap-3">
           {user ? (
