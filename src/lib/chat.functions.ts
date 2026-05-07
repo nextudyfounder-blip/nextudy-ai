@@ -115,7 +115,6 @@ export const askChat = createServerFn({ method: "POST" })
     ]);
 
     // Increment usage
-    await supabase.rpc("increment_question" as never).then(() => {}).catch(() => {});
     const { data: existing } = await supabase
       .from("usage_daily")
       .select("questions, uploads")
