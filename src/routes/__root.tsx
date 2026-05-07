@@ -41,8 +41,8 @@ export const Route = createRootRoute({
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Nextudy" },
       { name: "twitter:description", content: "Nextudy is a SaaS web app for students to study smarter with AI-powered tools." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/46a7d47e-6add-4d2b-8106-98dfbb2922bc/id-preview-ac99958c--dd5012df-d502-4e7f-a026-e86c2b150f92.lovable.app-1778177869307.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/46a7d47e-6add-4d2b-8106-98dfbb2922bc/id-preview-ac99958c--dd5012df-d502-4e7f-a026-e86c2b150f92.lovable.app-1778177869307.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/6e3a219e-fc99-427a-a189-262c65be71e8" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/6e3a219e-fc99-427a-a189-262c65be71e8" },
     ],
     links: [
       {
