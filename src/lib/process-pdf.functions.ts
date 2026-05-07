@@ -143,17 +143,34 @@ export const processPdf = createServerFn({ method: "POST" })
       .eq("id", data.documentId);
     if (updErr) throw new Error(updErr.message);
 
-    // increment uploads counter
-    const { data: prof } = await supabase
+    // increment monthly uploads counter
+    const { data: profMonthly } = await supabase
       .from("profiles")
       .select("uploads_this_month")
       .eq("id", userId)
       .maybeSingle();
-    if (prof) {
+    if (profMonthly) {
       await supabase
         .from("profiles")
-        .update({ uploads_this_month: (prof.uploads_this_month ?? 0) + 1 })
+        .update({ uploads_this_month: (profMonthly.uploads_this_month ?? 0) + 1 })
         .eq("id", userId);
+    }
+
+    // increment daily uploads counter
+    const { data: existing } = await supabase
+      .from("usage_daily")
+      .select("uploads, questions")
+      .eq("user_id", userId)
+      .eq("day", today)
+      .maybeSingle();
+    if (existing) {
+      await supabase
+        .from("usage_daily")
+        .update({ uploads: (existing.uploads ?? 0) + 1, updated_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("day", today);
+    } else {
+      await supabase.from("usage_daily").insert({ user_id: userId, day: today, uploads: 1, questions: 0 });
     }
 
     return { ok: true, summary: parsed.summary, questions: parsed.questions };
