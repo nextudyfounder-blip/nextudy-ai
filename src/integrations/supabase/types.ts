@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          document_id: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -64,6 +91,30 @@ export type Database = {
           },
         ]
       }
+      feedback: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          message: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          message: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          message?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -94,6 +145,30 @@ export type Database = {
           preferred_language?: string
           updated_at?: string
           uploads_this_month?: number
+        }
+        Relationships: []
+      }
+      usage_daily: {
+        Row: {
+          day: string
+          questions: number
+          updated_at: string
+          uploads: number
+          user_id: string
+        }
+        Insert: {
+          day?: string
+          questions?: number
+          updated_at?: string
+          uploads?: number
+          user_id: string
+        }
+        Update: {
+          day?: string
+          questions?: number
+          updated_at?: string
+          uploads?: number
+          user_id?: string
         }
         Relationships: []
       }
