@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Navbar() {
   const { user } = useAuth();
@@ -15,11 +16,13 @@ export function Navbar() {
           Nextudy
         </Link>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+          <a href="#how-it-works" className="hover:text-foreground transition-smooth">How it works</a>
           <a href="#features" className="hover:text-foreground transition-smooth">Features</a>
           <a href="#pricing" className="hover:text-foreground transition-smooth">Pricing</a>
-          <a href="#faq" className="hover:text-foreground transition-smooth">FAQ</a>
+          <Link to="/feedback" className="hover:text-foreground transition-smooth">Feedback</Link>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
           {user ? (
             <Button variant="hero" size="sm" asChild>
               <Link to="/dashboard">Dashboard</Link>

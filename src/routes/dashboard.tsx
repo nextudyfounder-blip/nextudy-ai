@@ -3,11 +3,14 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Sparkles, LogOut, Upload, FileText, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Sparkles, LogOut, Upload, FileText, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { extractPdfText } from "@/lib/pdf-extract";
 import { useServerFn } from "@tanstack/react-start";
 import { processPdf } from "@/lib/process-pdf.functions";
+import { ocrImage } from "@/lib/ocr.functions";
+import { getDailyUsage } from "@/lib/usage.functions";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -38,8 +41,12 @@ function Dashboard() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<string>("");
   const [activeId, setActiveId] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [usage, setUsage] = useState<{ uploads: number; questions: number; plan: string; limits: { uploads: number; questions: number } } | null>(null);
+  const pdfRef = useRef<HTMLInputElement>(null);
+  const imgRef = useRef<HTMLInputElement>(null);
   const processPdfFn = useServerFn(processPdf);
+  const ocrImageFn = useServerFn(ocrImage);
+  const usageFn = useServerFn(getDailyUsage);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -55,6 +62,10 @@ function Dashboard() {
     if (data && data.length && !activeId) setActiveId(data[0].id);
   }, [activeId]);
 
+  const refreshUsage = useCallback(() => {
+    usageFn().then(setUsage).catch(() => {});
+  }, [usageFn]);
+
   useEffect(() => {
     if (!user) return;
     supabase
@@ -64,29 +75,44 @@ function Dashboard() {
       .maybeSingle()
       .then(({ data }) => setProfile(data));
     loadDocs(user.id);
-  }, [user, loadDocs]);
+    refreshUsage();
+  }, [user, loadDocs, refreshUsage]);
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    if (file.type !== "application/pdf") {
-      toast.error("Please upload a PDF file");
-      return;
-    }
+  const fileToBase64 = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(",")[1] ?? "");
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const processUpload = async (file: File, kind: "pdf" | "image") => {
+    if (!user) return;
     if (file.size > 20 * 1024 * 1024) {
       toast.error("File too large (max 20MB)");
       return;
     }
-
     setBusy(true);
     try {
-      setProgress("Extracting text…");
-      const text = await extractPdfText(file);
-      if (text.length < 20) throw new Error("Could not extract enough text from this PDF");
+      let text = "";
+      if (kind === "pdf") {
+        setProgress("Extracting text…");
+        text = await extractPdfText(file);
+        if (text.length < 20) throw new Error("Could not extract enough text from this PDF");
+      } else {
+        setProgress("Reading image with AI…");
+        const base64 = await fileToBase64(file);
+        const r = await ocrImageFn({ data: { imageBase64: base64, mimeType: file.type as "image/png" } });
+        text = r.text;
+      }
 
       setProgress("Uploading…");
       const path = `${user.id}/${Date.now()}-${file.name}`;
-      const { error: upErr } = await supabase.storage.from("pdfs").upload(path, file);
+      const bucket = kind === "pdf" ? "pdfs" : "pdfs";
+      const { error: upErr } = await supabase.storage.from(bucket).upload(path, file);
       if (upErr) throw upErr;
 
       const { data: doc, error: insErr } = await supabase
@@ -102,7 +128,7 @@ function Dashboard() {
       toast.success("Done! Summary ready.");
       setActiveId(doc.id);
       await loadDocs(user.id);
-      // refresh profile counter
+      refreshUsage();
       const { data: p } = await supabase
         .from("profiles")
         .select("display_name, plan, uploads_this_month")
@@ -114,8 +140,23 @@ function Dashboard() {
     } finally {
       setBusy(false);
       setProgress("");
-      if (fileRef.current) fileRef.current.value = "";
+      if (pdfRef.current) pdfRef.current.value = "";
+      if (imgRef.current) imgRef.current.value = "";
     }
+  };
+
+  const handlePdf = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.type !== "application/pdf") { toast.error("Please upload a PDF file"); return; }
+    processUpload(f, "pdf");
+  };
+
+  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("image/")) { toast.error("Please upload an image"); return; }
+    processUpload(f, "image");
   };
 
   if (loading || !user) {
@@ -123,69 +164,112 @@ function Dashboard() {
   }
 
   const active = docs.find((d) => d.id === activeId) ?? null;
+  const recent = docs.slice(0, 3);
+  const isFree = (usage?.plan ?? "free") === "free";
+  const uploadsLeft = isFree ? Math.max(0, (usage?.limits.uploads ?? 5) - (usage?.uploads ?? 0)) : Infinity;
+
+  const shareSummary = async () => {
+    if (!active?.summary) return;
+    const text = `📚 ${active.file_name} — Nextudy summary:\n\n${active.summary.map((b) => `• ${b}`).join("\n")}\n\nStudy smarter with Nextudy →`;
+    if (navigator.share) {
+      try { await navigator.share({ title: active.file_name, text }); } catch {}
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast.success("Summary copied to clipboard!");
+    }
+  };
 
   return (
     <main className="min-h-screen bg-background">
       <header className="border-b border-border">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
+        <div className="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
           <Link to="/" className="flex items-center gap-2 font-display font-bold">
             <span className="h-8 w-8 rounded-lg bg-gradient-accent shadow-glow flex items-center justify-center">
               <Sparkles className="h-4 w-4 text-white" />
             </span>
             Nextudy
           </Link>
-          <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>
-            <LogOut className="h-4 w-4 mr-2" /> Sign out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/chat"><MessageSquare className="h-4 w-4 mr-2" />AI Chat</Link>
+            </Button>
+            <ThemeToggle />
+            <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>
+              <LogOut className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Sign out</span>
+            </Button>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <h1 className="text-3xl font-display font-bold">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <h1 className="text-2xl sm:text-3xl font-display font-bold">
           Welcome{profile?.display_name ? `, ${profile.display_name}` : ""} 👋
         </h1>
-        <p className="text-muted-foreground mt-2">Upload a PDF and get an instant summary with practice questions.</p>
+        <p className="text-muted-foreground mt-2">Upload a PDF or photo and get an instant summary with practice questions.</p>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-          <div className="rounded-xl border border-border bg-card p-6">
-            <p className="text-sm text-muted-foreground">Plan</p>
-            <p className="text-2xl font-display font-bold capitalize mt-1">{profile?.plan ?? "free"}</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+          <div className="rounded-xl border border-border bg-card p-5">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Plan</p>
+            <p className="text-xl font-display font-bold capitalize mt-1">{usage?.plan ?? "free"}</p>
           </div>
-          <div className="rounded-xl border border-border bg-card p-6">
-            <p className="text-sm text-muted-foreground">Uploads this month</p>
-            <p className="text-2xl font-display font-bold mt-1">{profile?.uploads_this_month ?? 0}</p>
+          <div className="rounded-xl border border-border bg-card p-5">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Uploads today</p>
+            <p className="text-xl font-display font-bold mt-1">
+              {usage?.uploads ?? 0}{isFree && <span className="text-muted-foreground text-base">/{usage?.limits.uploads ?? 5}</span>}
+            </p>
           </div>
-          <div className="rounded-xl border border-border bg-card p-6">
-            <p className="text-sm text-muted-foreground">Email</p>
-            <p className="text-sm font-medium mt-1 truncate">{user.email}</p>
+          <div className="rounded-xl border border-border bg-card p-5">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Questions today</p>
+            <p className="text-xl font-display font-bold mt-1">
+              {usage?.questions ?? 0}{isFree && <span className="text-muted-foreground text-base">/{usage?.limits.questions ?? 20}</span>}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-5">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Total docs</p>
+            <p className="text-xl font-display font-bold mt-1">{docs.length}</p>
           </div>
         </div>
 
+        {/* Recently studied */}
+        {recent.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Recently studied</h2>
+            <div className="grid sm:grid-cols-3 gap-3">
+              {recent.map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => setActiveId(d.id)}
+                  className="text-left rounded-xl border border-border bg-card p-4 hover:shadow-elegant transition-smooth"
+                >
+                  <FileText className="h-5 w-5 text-accent mb-2" />
+                  <p className="text-sm font-medium truncate">{d.file_name}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{new Date(d.created_at).toLocaleDateString()}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Upload */}
-        <div className="mt-10 rounded-2xl border border-dashed border-border p-10 text-center bg-card/40">
-          <input
-            ref={fileRef}
-            type="file"
-            accept="application/pdf"
-            className="hidden"
-            onChange={handleFile}
-            disabled={busy}
-          />
+        <div className="mt-10 rounded-2xl border border-dashed border-border p-8 sm:p-10 text-center bg-card/40">
+          <input ref={pdfRef} type="file" accept="application/pdf" className="hidden" onChange={handlePdf} disabled={busy} />
+          <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={handleImage} disabled={busy} />
           <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
-          <p className="mt-3 font-medium">Upload a study PDF</p>
-          <p className="text-sm text-muted-foreground mt-1">Max 20MB · 50 pages</p>
-          <Button
-            variant="hero"
-            className="mt-5"
-            onClick={() => fileRef.current?.click()}
-            disabled={busy}
-          >
-            {busy ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{progress || "Working…"}</>
-            ) : (
-              <>Choose PDF</>
+          <p className="mt-3 font-medium">Add study material</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            PDF or photo of textbook / handwritten notes · Max 20MB
+            {isFree && uploadsLeft <= 2 && uploadsLeft > 0 && (
+              <span className="block mt-1 text-accent">{uploadsLeft} upload{uploadsLeft === 1 ? "" : "s"} left today</span>
             )}
-          </Button>
+          </p>
+          <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center">
+            <Button variant="hero" onClick={() => pdfRef.current?.click()} disabled={busy}>
+              {busy ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{progress || "Working…"}</> : <><FileText className="h-4 w-4 mr-2" />Upload PDF</>}
+            </Button>
+            <Button variant="outline" onClick={() => imgRef.current?.click()} disabled={busy}>
+              <ImageIcon className="h-4 w-4 mr-2" />Upload photo
+            </Button>
+          </div>
         </div>
 
         {/* Documents */}
@@ -220,12 +304,15 @@ function Dashboard() {
             <section>
               {active ? (
                 <div className="space-y-8">
-                  <div>
+                  <div className="flex items-start justify-between gap-3">
                     <h3 className="text-xl font-display font-bold">{active.file_name}</h3>
-                    {active.error && (
-                      <p className="text-sm text-destructive mt-2">{active.error}</p>
+                    {active.summary && active.summary.length > 0 && (
+                      <Button variant="outline" size="sm" onClick={shareSummary}>Share</Button>
                     )}
                   </div>
+                  {active.error && (
+                    <p className="text-sm text-destructive mt-2">{active.error}</p>
+                  )}
 
                   {active.summary && active.summary.length > 0 && (
                     <div className="rounded-xl border border-border bg-card p-6">

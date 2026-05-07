@@ -20,6 +20,26 @@ export const processPdf = createServerFn({ method: "POST" })
     const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+    // Enforce daily upload limit for free plan
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", userId)
+      .maybeSingle();
+    const isFree = (prof?.plan ?? "free") === "free";
+    const today = new Date().toISOString().slice(0, 10);
+    if (isFree) {
+      const { data: usage } = await supabase
+        .from("usage_daily")
+        .select("uploads")
+        .eq("user_id", userId)
+        .eq("day", today)
+        .maybeSingle();
+      if ((usage?.uploads ?? 0) >= 5) {
+        throw new Error("Daily limit reached (5/5 uploads). Upgrade to Pro for unlimited.");
+      }
+    }
+
     // verify ownership
     const { data: doc, error: docErr } = await supabase
       .from("documents")
@@ -123,17 +143,34 @@ export const processPdf = createServerFn({ method: "POST" })
       .eq("id", data.documentId);
     if (updErr) throw new Error(updErr.message);
 
-    // increment uploads counter
-    const { data: prof } = await supabase
+    // increment monthly uploads counter
+    const { data: profMonthly } = await supabase
       .from("profiles")
       .select("uploads_this_month")
       .eq("id", userId)
       .maybeSingle();
-    if (prof) {
+    if (profMonthly) {
       await supabase
         .from("profiles")
-        .update({ uploads_this_month: (prof.uploads_this_month ?? 0) + 1 })
+        .update({ uploads_this_month: (profMonthly.uploads_this_month ?? 0) + 1 })
         .eq("id", userId);
+    }
+
+    // increment daily uploads counter
+    const { data: existing } = await supabase
+      .from("usage_daily")
+      .select("uploads, questions")
+      .eq("user_id", userId)
+      .eq("day", today)
+      .maybeSingle();
+    if (existing) {
+      await supabase
+        .from("usage_daily")
+        .update({ uploads: (existing.uploads ?? 0) + 1, updated_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("day", today);
+    } else {
+      await supabase.from("usage_daily").insert({ user_id: userId, day: today, uploads: 1, questions: 0 });
     }
 
     return { ok: true, summary: parsed.summary, questions: parsed.questions };
