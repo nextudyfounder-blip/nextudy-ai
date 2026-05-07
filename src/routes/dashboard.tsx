@@ -7,7 +7,7 @@ import { Sparkles, LogOut, Upload, FileText, Loader2, CheckCircle2, AlertCircle 
 import { toast } from "sonner";
 import { extractPdfText } from "@/lib/pdf-extract";
 import { useServerFn } from "@tanstack/react-start";
-import { processPdf } from "@/server/process-pdf.functions";
+import { processPdf } from "@/lib/process-pdf.functions";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
