@@ -20,6 +20,26 @@ export const processPdf = createServerFn({ method: "POST" })
     const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+    // Enforce daily upload limit for free plan
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", userId)
+      .maybeSingle();
+    const isFree = (prof?.plan ?? "free") === "free";
+    const today = new Date().toISOString().slice(0, 10);
+    if (isFree) {
+      const { data: usage } = await supabase
+        .from("usage_daily")
+        .select("uploads")
+        .eq("user_id", userId)
+        .eq("day", today)
+        .maybeSingle();
+      if ((usage?.uploads ?? 0) >= 5) {
+        throw new Error("Daily limit reached (5/5 uploads). Upgrade to Pro for unlimited.");
+      }
+    }
+
     // verify ownership
     const { data: doc, error: docErr } = await supabase
       .from("documents")
