@@ -304,12 +304,15 @@ function Dashboard() {
             <section>
               {active ? (
                 <div className="space-y-8">
-                  <div>
+                  <div className="flex items-start justify-between gap-3">
                     <h3 className="text-xl font-display font-bold">{active.file_name}</h3>
-                    {active.error && (
-                      <p className="text-sm text-destructive mt-2">{active.error}</p>
+                    {active.summary && active.summary.length > 0 && (
+                      <Button variant="outline" size="sm" onClick={shareSummary}>Share</Button>
                     )}
                   </div>
+                  {active.error && (
+                    <p className="text-sm text-destructive mt-2">{active.error}</p>
+                  )}
 
                   {active.summary && active.summary.length > 0 && (
                     <div className="rounded-xl border border-border bg-card p-6">
