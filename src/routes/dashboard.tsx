@@ -1,16 +1,16 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Sparkles, LogOut, Upload, FileText, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon, MessageSquare } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { extractPdfText } from "@/lib/pdf-extract";
 import { useServerFn } from "@tanstack/react-start";
 import { processPdf } from "@/lib/process-pdf.functions";
 import { ocrImage } from "@/lib/ocr.functions";
 import { getDailyUsage } from "@/lib/usage.functions";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { AppLayout } from "@/components/AppLayout";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -34,7 +34,7 @@ interface DocumentRow {
 }
 
 function Dashboard() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [docs, setDocs] = useState<DocumentRow[]>([]);
@@ -180,27 +180,7 @@ function Dashboard() {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="border-b border-border">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
-          <Link to="/" className="flex items-center gap-2 font-display font-bold">
-            <span className="h-8 w-8 rounded-lg bg-gradient-accent shadow-glow flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-white" />
-            </span>
-            Nextudy
-          </Link>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/chat"><MessageSquare className="h-4 w-4 mr-2" />AI Chat</Link>
-            </Button>
-            <ThemeToggle />
-            <Button variant="ghost" size="sm" onClick={() => { signOut(); navigate({ to: "/" }); }}>
-              <LogOut className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Sign out</span>
-            </Button>
-          </div>
-        </div>
-      </header>
-
+    <AppLayout title="Dashboard">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <h1 className="text-2xl sm:text-3xl font-display font-bold">
           Welcome{profile?.display_name ? `, ${profile.display_name}` : ""} 👋
@@ -230,7 +210,6 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Recently studied */}
         {recent.length > 0 && (
           <div className="mt-10">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Recently studied</h2>
@@ -250,7 +229,6 @@ function Dashboard() {
           </div>
         )}
 
-        {/* Upload */}
         <div className="mt-10 rounded-2xl border border-dashed border-border p-8 sm:p-10 text-center bg-card/40">
           <input ref={pdfRef} type="file" accept="application/pdf" className="hidden" onChange={handlePdf} disabled={busy} />
           <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={handleImage} disabled={busy} />
@@ -272,7 +250,6 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Documents */}
         {docs.length > 0 && (
           <div className="mt-12 grid lg:grid-cols-[260px_1fr] gap-6">
             <aside className="space-y-2">
@@ -310,17 +287,13 @@ function Dashboard() {
                       <Button variant="outline" size="sm" onClick={shareSummary}>Share</Button>
                     )}
                   </div>
-                  {active.error && (
-                    <p className="text-sm text-destructive mt-2">{active.error}</p>
-                  )}
+                  {active.error && <p className="text-sm text-destructive mt-2">{active.error}</p>}
 
                   {active.summary && active.summary.length > 0 && (
                     <div className="rounded-xl border border-border bg-card p-6">
                       <h4 className="font-display font-semibold text-lg mb-4">Summary</h4>
                       <ul className="space-y-2 list-disc pl-5 text-sm leading-relaxed">
-                        {active.summary.map((b, i) => (
-                          <li key={i}>{b}</li>
-                        ))}
+                        {active.summary.map((b, i) => (<li key={i}>{b}</li>))}
                       </ul>
                     </div>
                   )}
@@ -352,6 +325,6 @@ function Dashboard() {
           </div>
         )}
       </div>
-    </main>
+    </AppLayout>
   );
 }

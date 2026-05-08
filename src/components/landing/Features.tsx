@@ -9,7 +9,7 @@ const features = [
   { icon: TrendingUp, title: "Progress per subject", desc: "Track mastery, streaks and study hours across every course." },
   { icon: Timer, title: "Pomodoro timer", desc: "Built-in focus timer with breaks that actually keep you sharp." },
   { icon: Share2, title: "Share & collaborate", desc: "Send summaries to classmates or your study group instantly." },
-  { icon: Globe, title: "5 languages", desc: "Works in English, Dutch, German, French and Spanish." },
+  { icon: Globe, title: "5+ languages", desc: "Works in English, Dutch, German, French, Spanish and more." },
 ];
 
 export function Features() {
