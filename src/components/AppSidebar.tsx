@@ -8,7 +8,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 
-const items = [
+type Item = { title: string; url: string; icon: typeof FileText; emoji: string; soon?: boolean };
+const items: Item[] = [
   { title: "Upload & Summarize", url: "/dashboard", icon: FileText, emoji: "📄" },
   { title: "AI Chatbot", url: "/chat", icon: Bot, emoji: "🤖" },
   { title: "Flashcards", url: "/flashcards", icon: Layers, emoji: "🃏", soon: true },
@@ -18,7 +19,7 @@ const items = [
   { title: "What's New", url: "/whats-new", icon: Sparkle, emoji: "🆕" },
   { title: "Feedback", url: "/feedback", icon: MessageSquare, emoji: "💬" },
   { title: "Settings", url: "/settings", icon: Settings, emoji: "⚙️", soon: true },
-] as const;
+];
 
 export function AppSidebar() {
   const { state } = useSidebar();
