@@ -19,6 +19,7 @@ export function Navbar() {
           <a href="#how-it-works" className="hover:text-foreground transition-smooth">How it works</a>
           <a href="#features" className="hover:text-foreground transition-smooth">Features</a>
           <a href="#pricing" className="hover:text-foreground transition-smooth">Pricing</a>
+          <Link to="/whats-new" className="hover:text-foreground transition-smooth">What's new</Link>
           <Link to="/feedback" className="hover:text-foreground transition-smooth">Feedback</Link>
         </div>
         <div className="flex items-center gap-2">

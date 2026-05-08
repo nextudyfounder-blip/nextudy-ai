@@ -1,4 +1,5 @@
 import { Sparkles } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 export function Footer() {
   return (
@@ -13,9 +14,10 @@ export function Footer() {
           </div>
           <p className="text-sm text-primary-foreground/60">Study less. Know more.</p>
           <div className="flex gap-6 text-sm text-primary-foreground/70">
+            <Link to="/whats-new" className="hover:text-primary-foreground">What's new</Link>
+            <Link to="/feedback" className="hover:text-primary-foreground">Feedback</Link>
             <a href="#" className="hover:text-primary-foreground">Privacy</a>
             <a href="#" className="hover:text-primary-foreground">Terms</a>
-            <a href="#" className="hover:text-primary-foreground">Contact</a>
           </div>
         </div>
         <div className="mt-10 pt-8 border-t border-white/10 text-center text-xs text-primary-foreground/50">
