@@ -1,16 +1,16 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Sparkles, LogOut, Upload, FileText, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon, MessageSquare } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { extractPdfText } from "@/lib/pdf-extract";
 import { useServerFn } from "@tanstack/react-start";
 import { processPdf } from "@/lib/process-pdf.functions";
 import { ocrImage } from "@/lib/ocr.functions";
 import { getDailyUsage } from "@/lib/usage.functions";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { AppLayout } from "@/components/AppLayout";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
