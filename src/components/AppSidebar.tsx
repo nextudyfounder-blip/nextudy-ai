@@ -1,7 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Sparkles, FileText, Bot, Layers, Network, BarChart3, Timer, Sparkle, MessageSquare, Settings, LogOut } from "lucide-react";
+import { Sparkles, FileText, Bot, Layers, Network, BarChart3, Timer, Sparkle, MessageSquare, Settings, LogOut, Gamepad2, Coins } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
@@ -12,6 +14,7 @@ type Item = { title: string; url: string; icon: typeof FileText; emoji: string; 
 const items: Item[] = [
   { title: "Upload & Summarize", url: "/dashboard", icon: FileText, emoji: "📄" },
   { title: "AI Chatbot", url: "/chat", icon: Bot, emoji: "🤖" },
+  { title: "Games", url: "/games", icon: Gamepad2, emoji: "🎮" },
   { title: "Flashcards", url: "/flashcards", icon: Layers, emoji: "🃏", soon: true },
   { title: "Mindmap", url: "/mindmap", icon: Network, emoji: "🗺️", soon: true },
   { title: "Progress", url: "/progress", icon: BarChart3, emoji: "📊", soon: true },
