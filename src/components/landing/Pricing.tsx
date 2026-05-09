@@ -135,6 +135,9 @@ export function Pricing() {
                 <span className={p.highlight ? "text-white/60" : "text-muted-foreground"}>{p.period}</span>
               </div>
               <Button variant={p.variant} className="w-full mt-6" size="lg">{p.cta}</Button>
+              <p className={`mt-3 text-xs text-center ${p.highlight ? "text-white/70" : "text-muted-foreground"}`}>
+                <CountUp to={p.users} suffix="+" /> {p.usersLabel}
+              </p>
               <ul className="mt-8 space-y-3">
                 {p.features.map((f) => (
                   <li key={f} className="flex items-start gap-3 text-sm">
