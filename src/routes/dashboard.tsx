@@ -178,7 +178,7 @@ function Dashboard() {
   const active = docs.find((d) => d.id === activeId) ?? null;
   const recent = docs.slice(0, 3);
   const isFree = (usage?.plan ?? "free") === "free";
-  const uploadsLeft = isFree ? Math.max(0, (usage?.limits.uploads ?? 5) - (usage?.uploads ?? 0)) : Infinity;
+  const uploadsLeft = isFree ? Math.max(0, (usage?.limits?.uploads ?? 5) - (usage?.uploads ?? 0)) : Infinity;
 
   const shareSummary = async () => {
     if (!active?.summary) return;
@@ -207,13 +207,13 @@ function Dashboard() {
           <div className="rounded-xl border border-border bg-card p-5">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Uploads today</p>
             <p className="text-xl font-display font-bold mt-1">
-              {usage?.uploads ?? 0}{isFree && <span className="text-muted-foreground text-base">/{usage?.limits.uploads ?? 5}</span>}
+              {usage?.uploads ?? 0}{isFree && <span className="text-muted-foreground text-base">/{usage?.limits?.uploads ?? 5}</span>}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-5">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Questions today</p>
             <p className="text-xl font-display font-bold mt-1">
-              {usage?.questions ?? 0}{isFree && <span className="text-muted-foreground text-base">/{usage?.limits.questions ?? 20}</span>}
+              {usage?.questions ?? 0}{isFree && <span className="text-muted-foreground text-base">/{usage?.limits?.questions ?? 20}</span>}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-5">
