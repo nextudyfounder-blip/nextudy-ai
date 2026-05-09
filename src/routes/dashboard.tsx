@@ -41,7 +41,7 @@ function Dashboard() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<string>("");
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [usage, setUsage] = useState<{ uploads: number; questions: number; plan: string; limits: { uploads: number; questions: number } } | null>(null);
+  const [usage, setUsage] = useState<{ uploads: number; questions: number; plan: string; limits: { uploads: number; questions: number } }>({ uploads: 0, questions: 0, plan: "free", limits: { uploads: 5, questions: 20 } });
   const pdfRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const processPdfFn = useServerFn(processPdf);
