@@ -34,10 +34,10 @@ export function Hero() {
             mindmaps and practice questions. Built for students who want results, not all-nighters.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button variant="hero" size="xl">
+            <Button variant="hero" size="xl" onClick={goUpload}>
               <Upload className="h-5 w-5" /> Upload your first PDF
             </Button>
-            <Button variant="heroOutline" size="xl">
+            <Button variant="heroOutline" size="xl" onClick={goHowItWorks}>
               See how it works <ArrowRight className="h-5 w-5" />
             </Button>
           </div>
