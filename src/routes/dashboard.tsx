@@ -138,6 +138,8 @@ function Dashboard() {
       await processPdfFn({ data: { documentId: doc.id, text } });
 
       toast.success("Done! Summary ready.");
+      const { awardCoins } = await import("@/lib/coins");
+      awardCoins("upload").then((n) => { if (n !== null) toast.success("+15 Study Coins! 🪙"); });
       setActiveId(doc.id);
       await loadDocs(user.id);
       refreshUsage();
