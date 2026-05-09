@@ -62,8 +62,20 @@ function Dashboard() {
     if (data && data.length && !activeId) setActiveId(data[0].id);
   }, [activeId]);
 
-  const refreshUsage = useCallback(() => {
-    usageFn().then(setUsage).catch(() => {});
+  const refreshUsage = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const u = await usageFn();
+      if (u) setUsage({
+        uploads: u.uploads ?? 0,
+        questions: u.questions ?? 0,
+        plan: u.plan ?? "free",
+        limits: { uploads: u.limits?.uploads ?? 5, questions: u.limits?.questions ?? 20 },
+      });
+    } catch (e) {
+      console.warn("usage fetch failed", e);
+    }
   }, [usageFn]);
 
   useEffect(() => {
