@@ -41,7 +41,7 @@ function Dashboard() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<string>("");
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [usage, setUsage] = useState<{ uploads: number; questions: number; plan: string; limits: { uploads: number; questions: number } } | null>(null);
+  const [usage, setUsage] = useState<{ uploads: number; questions: number; plan: string; limits: { uploads: number; questions: number } }>({ uploads: 0, questions: 0, plan: "free", limits: { uploads: 5, questions: 20 } });
   const pdfRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLInputElement>(null);
   const processPdfFn = useServerFn(processPdf);
@@ -62,8 +62,20 @@ function Dashboard() {
     if (data && data.length && !activeId) setActiveId(data[0].id);
   }, [activeId]);
 
-  const refreshUsage = useCallback(() => {
-    usageFn().then(setUsage).catch(() => {});
+  const refreshUsage = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const u = await usageFn();
+      if (u) setUsage({
+        uploads: u.uploads ?? 0,
+        questions: u.questions ?? 0,
+        plan: u.plan ?? "free",
+        limits: { uploads: u.limits?.uploads ?? 5, questions: u.limits?.questions ?? 20 },
+      });
+    } catch (e) {
+      console.warn("usage fetch failed", e);
+    }
   }, [usageFn]);
 
   useEffect(() => {
@@ -166,7 +178,7 @@ function Dashboard() {
   const active = docs.find((d) => d.id === activeId) ?? null;
   const recent = docs.slice(0, 3);
   const isFree = (usage?.plan ?? "free") === "free";
-  const uploadsLeft = isFree ? Math.max(0, (usage?.limits.uploads ?? 5) - (usage?.uploads ?? 0)) : Infinity;
+  const uploadsLeft = isFree ? Math.max(0, (usage?.limits?.uploads ?? 5) - (usage?.uploads ?? 0)) : Infinity;
 
   const shareSummary = async () => {
     if (!active?.summary) return;
@@ -195,13 +207,13 @@ function Dashboard() {
           <div className="rounded-xl border border-border bg-card p-5">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Uploads today</p>
             <p className="text-xl font-display font-bold mt-1">
-              {usage?.uploads ?? 0}{isFree && <span className="text-muted-foreground text-base">/{usage?.limits.uploads ?? 5}</span>}
+              {usage?.uploads ?? 0}{isFree && <span className="text-muted-foreground text-base">/{usage?.limits?.uploads ?? 5}</span>}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-5">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Questions today</p>
             <p className="text-xl font-display font-bold mt-1">
-              {usage?.questions ?? 0}{isFree && <span className="text-muted-foreground text-base">/{usage?.limits.questions ?? 20}</span>}
+              {usage?.questions ?? 0}{isFree && <span className="text-muted-foreground text-base">/{usage?.limits?.questions ?? 20}</span>}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-5">
