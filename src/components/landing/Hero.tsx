@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Upload } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
 import heroImg from "@/assets/hero.jpg";
 
 export function Hero() {
