@@ -97,14 +97,26 @@ export function AppSidebar() {
 
       <SidebarFooter>
         {user && !collapsed && (
-          <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted/40 mb-1">
-            <div className="h-7 w-7 rounded-full bg-gradient-accent grid place-items-center text-white text-xs font-bold shrink-0">
-              {(user.user_metadata?.display_name?.[0] || user.email?.[0] || "U").toUpperCase()}
+          <>
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-1">
+              <Coins className="h-4 w-4 text-amber-500 shrink-0" />
+              <span className="text-xs font-semibold">{coins}</span>
+              <span className="text-[10px] text-muted-foreground ml-auto">Study Coins</span>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium truncate">{user.user_metadata?.display_name || user.email}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+            <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted/40 mb-1">
+              <div className="h-7 w-7 rounded-full bg-gradient-accent grid place-items-center text-white text-xs font-bold shrink-0">
+                {(user.user_metadata?.display_name?.[0] || user.email?.[0] || "U").toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium truncate">{user.user_metadata?.display_name || user.email}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+              </div>
             </div>
+          </>
+        )}
+        {user && collapsed && (
+          <div className="flex items-center justify-center px-1 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-1" title={`${coins} Study Coins`}>
+            <Coins className="h-4 w-4 text-amber-500" />
           </div>
         )}
         <Button variant="ghost" size="sm" onClick={handleSignOut} className="justify-start">
