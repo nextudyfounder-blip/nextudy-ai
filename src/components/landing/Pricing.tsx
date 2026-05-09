@@ -41,6 +41,8 @@ const plans = [
     ],
     cta: "Start free",
     variant: "outline" as const,
+    users: 4200,
+    usersLabel: "students on free plan",
   },
   {
     name: "Pro",
@@ -57,6 +59,8 @@ const plans = [
     cta: "Go Pro",
     variant: "hero" as const,
     highlight: true,
+    users: 5697,
+    usersLabel: "students on Pro",
   },
   {
     name: "Team",
@@ -72,6 +76,8 @@ const plans = [
     ],
     cta: "Get Team",
     variant: "outline" as const,
+    users: 2054,
+    usersLabel: "teams using Team plan",
   },
 ];
 
