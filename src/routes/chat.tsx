@@ -79,6 +79,36 @@ function ChatPage() {
 
   const newChat = () => { setActiveId(null); setMessages([]); };
 
+  const sendStarter = (text: string) => {
+    setInput(text);
+    setTimeout(() => {
+      const evt = new Event("submit");
+      // trigger send directly
+      (async () => {
+        if (busy) return;
+        setMessages((m) => [...m, { role: "user", content: text }]);
+        setInput("");
+        setBusy(true);
+        try {
+          const res = await ask({ data: { message: text, conversationId: activeId } });
+          setMessages((m) => [...m, { role: "assistant", content: res.reply }]);
+          if (!activeId) setActiveId(res.conversationId);
+          refreshList();
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Chat failed";
+          toast.error(msg);
+        } finally { setBusy(false); }
+      })();
+    }, 0);
+  };
+
+  const starters = [
+    "Summarize my latest PDF",
+    "Explain photosynthesis simply",
+    "Help me study for my math exam",
+    "Quiz me on what I uploaded",
+  ];
+
   const removeConv = async (id: string) => {
     if (!confirm("Delete this conversation?")) return;
     await delFn({ data: { conversationId: id } });
