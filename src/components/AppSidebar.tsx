@@ -1,7 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Sparkles, FileText, Bot, Layers, Network, BarChart3, Timer, Sparkle, MessageSquare, Settings, LogOut } from "lucide-react";
+import { Sparkles, FileText, Bot, Layers, Network, BarChart3, Timer, Sparkle, MessageSquare, Settings, LogOut, Gamepad2, Coins } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
@@ -12,6 +14,7 @@ type Item = { title: string; url: string; icon: typeof FileText; emoji: string; 
 const items: Item[] = [
   { title: "Upload & Summarize", url: "/dashboard", icon: FileText, emoji: "📄" },
   { title: "AI Chatbot", url: "/chat", icon: Bot, emoji: "🤖" },
+  { title: "Games", url: "/games", icon: Gamepad2, emoji: "🎮" },
   { title: "Flashcards", url: "/flashcards", icon: Layers, emoji: "🃏", soon: true },
   { title: "Mindmap", url: "/mindmap", icon: Network, emoji: "🗺️", soon: true },
   { title: "Progress", url: "/progress", icon: BarChart3, emoji: "📊", soon: true },
@@ -27,6 +30,23 @@ export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const [coins, setCoins] = useState<number>(0);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    const load = async () => {
+      const { data } = await supabase.from("profiles").select("study_coins").eq("id", user.id).maybeSingle();
+      if (active) setCoins(data?.study_coins ?? 0);
+    };
+    load();
+    const ch = supabase
+      .channel(`coins-${user.id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
+        (payload) => { if (active) setCoins((payload.new as { study_coins?: number }).study_coins ?? 0); })
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(ch); };
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -77,14 +97,26 @@ export function AppSidebar() {
 
       <SidebarFooter>
         {user && !collapsed && (
-          <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted/40 mb-1">
-            <div className="h-7 w-7 rounded-full bg-gradient-accent grid place-items-center text-white text-xs font-bold shrink-0">
-              {(user.user_metadata?.display_name?.[0] || user.email?.[0] || "U").toUpperCase()}
+          <>
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-1">
+              <Coins className="h-4 w-4 text-amber-500 shrink-0" />
+              <span className="text-xs font-semibold">{coins}</span>
+              <span className="text-[10px] text-muted-foreground ml-auto">Study Coins</span>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium truncate">{user.user_metadata?.display_name || user.email}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+            <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted/40 mb-1">
+              <div className="h-7 w-7 rounded-full bg-gradient-accent grid place-items-center text-white text-xs font-bold shrink-0">
+                {(user.user_metadata?.display_name?.[0] || user.email?.[0] || "U").toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium truncate">{user.user_metadata?.display_name || user.email}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+              </div>
             </div>
+          </>
+        )}
+        {user && collapsed && (
+          <div className="flex items-center justify-center px-1 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-1" title={`${coins} Study Coins`}>
+            <Coins className="h-4 w-4 text-amber-500" />
           </div>
         )}
         <Button variant="ghost" size="sm" onClick={handleSignOut} className="justify-start">

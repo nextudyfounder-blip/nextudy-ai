@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsNewRouteImport } from './routes/whats-new'
+import { Route as GamesRouteImport } from './routes/games'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ChatRouteImport } from './routes/chat'
@@ -19,6 +20,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const WhatsNewRoute = WhatsNewRouteImport.update({
   id: '/whats-new',
   path: '/whats-new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesRoute = GamesRouteImport.update({
+  id: '/games',
+  path: '/games',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedbackRoute = FeedbackRouteImport.update({
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
+  '/games': typeof GamesRoute
   '/whats-new': typeof WhatsNewRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
+  '/games': typeof GamesRoute
   '/whats-new': typeof WhatsNewRoute
 }
 export interface FileRoutesById {
@@ -70,13 +78,28 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
+  '/games': typeof GamesRoute
   '/whats-new': typeof WhatsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/chat' | '/dashboard' | '/feedback' | '/whats-new'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/chat'
+    | '/dashboard'
+    | '/feedback'
+    | '/games'
+    | '/whats-new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/chat' | '/dashboard' | '/feedback' | '/whats-new'
+  to:
+    | '/'
+    | '/auth'
+    | '/chat'
+    | '/dashboard'
+    | '/feedback'
+    | '/games'
+    | '/whats-new'
   id:
     | '__root__'
     | '/'
@@ -84,6 +107,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/feedback'
+    | '/games'
     | '/whats-new'
   fileRoutesById: FileRoutesById
 }
@@ -93,6 +117,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   DashboardRoute: typeof DashboardRoute
   FeedbackRoute: typeof FeedbackRoute
+  GamesRoute: typeof GamesRoute
   WhatsNewRoute: typeof WhatsNewRoute
 }
 
@@ -103,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/whats-new'
       fullPath: '/whats-new'
       preLoaderRoute: typeof WhatsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games': {
+      id: '/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof GamesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feedback': {
@@ -149,17 +181,9 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   DashboardRoute: DashboardRoute,
   FeedbackRoute: FeedbackRoute,
+  GamesRoute: GamesRoute,
   WhatsNewRoute: WhatsNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

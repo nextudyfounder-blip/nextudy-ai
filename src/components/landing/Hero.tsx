@@ -1,8 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Upload } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/useAuth";
 import heroImg from "@/assets/hero.jpg";
 
 export function Hero() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const goUpload = () => navigate({ to: user ? "/dashboard" : "/auth" });
+  const goHowItWorks = () => {
+    document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   return (
     <section className="relative overflow-hidden bg-gradient-hero text-white pt-32 pb-24">
       <div className="absolute inset-0 opacity-30 mix-blend-screen">
@@ -26,10 +34,10 @@ export function Hero() {
             mindmaps and practice questions. Built for students who want results, not all-nighters.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button variant="hero" size="xl">
+            <Button variant="hero" size="xl" onClick={goUpload}>
               <Upload className="h-5 w-5" /> Upload your first PDF
             </Button>
-            <Button variant="heroOutline" size="xl">
+            <Button variant="heroOutline" size="xl" onClick={goHowItWorks}>
               See how it works <ArrowRight className="h-5 w-5" />
             </Button>
           </div>
