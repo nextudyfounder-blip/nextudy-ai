@@ -30,6 +30,23 @@ export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const [coins, setCoins] = useState<number>(0);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    const load = async () => {
+      const { data } = await supabase.from("profiles").select("study_coins").eq("id", user.id).maybeSingle();
+      if (active) setCoins(data?.study_coins ?? 0);
+    };
+    load();
+    const ch = supabase
+      .channel(`coins-${user.id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
+        (payload) => { if (active) setCoins((payload.new as { study_coins?: number }).study_coins ?? 0); })
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(ch); };
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
