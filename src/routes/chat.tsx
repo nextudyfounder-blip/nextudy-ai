@@ -170,14 +170,25 @@ function ChatPage() {
           <div ref={scrollRef} className="flex-1 overflow-y-auto">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-4">
               {messages.length === 0 && (
-                <div className="text-center py-16 space-y-3">
+                <div className="text-center py-10 sm:py-16 space-y-4">
                   <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-accent shadow-glow">
                     <Bot className="h-7 w-7 text-white" />
                   </div>
-                  <h2 className="text-xl font-display font-bold">Ask me anything</h2>
+                  <h2 className="text-2xl font-display font-bold">Welcome to Nextudy 👋</h2>
                   <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                    I know your uploaded documents and can help with any study topic.
+                    Ask me anything about your studies. I know your uploaded documents and can help with any subject.
                   </p>
+                  <div className="grid sm:grid-cols-2 gap-2 max-w-xl mx-auto pt-4">
+                    {starters.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => sendStarter(s)}
+                        className="text-left text-sm rounded-xl border border-border bg-card hover:bg-muted/50 hover:border-primary/40 transition px-4 py-3"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               {messages.map((m, i) => (
