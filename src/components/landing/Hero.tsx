@@ -5,6 +5,12 @@ import { useAuth } from "@/hooks/useAuth";
 import heroImg from "@/assets/hero.jpg";
 
 export function Hero() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const goUpload = () => navigate({ to: user ? "/dashboard" : "/auth" });
+  const goHowItWorks = () => {
+    document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   return (
     <section className="relative overflow-hidden bg-gradient-hero text-white pt-32 pb-24">
       <div className="absolute inset-0 opacity-30 mix-blend-screen">
