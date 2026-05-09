@@ -95,6 +95,10 @@ export function Pricing() {
           <div className="inline-block text-sm font-semibold text-accent uppercase tracking-wider">Pricing</div>
           <h2 className="text-4xl md:text-5xl font-bold">Simple plans, smarter studying</h2>
           <p className="text-lg text-muted-foreground">Start free. Upgrade when you want unlimited power.</p>
+          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-accent/10 border border-accent/30 px-4 py-2 text-sm font-semibold text-accent">
+            <Users className="h-4 w-4" />
+            <CountUp to={10000} suffix="+" /> students already studying smarter
+          </div>
         </div>
 
         <div className="flex flex-wrap justify-center gap-3 mb-12 max-w-4xl mx-auto">
