@@ -25,7 +25,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -76,6 +76,17 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
+        {user && !collapsed && (
+          <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted/40 mb-1">
+            <div className="h-7 w-7 rounded-full bg-gradient-accent grid place-items-center text-white text-xs font-bold shrink-0">
+              {(user.user_metadata?.display_name?.[0] || user.email?.[0] || "U").toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium truncate">{user.user_metadata?.display_name || user.email}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+            </div>
+          </div>
+        )}
         <Button variant="ghost" size="sm" onClick={handleSignOut} className="justify-start">
           <LogOut className="h-4 w-4" />
           {!collapsed && <span className="ml-2">Sign out</span>}

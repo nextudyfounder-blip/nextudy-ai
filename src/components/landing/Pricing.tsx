@@ -1,5 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, TrendingUp, Clock, Users } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
+function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
+  const [n, setN] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !started.current) {
+        started.current = true;
+        const start = performance.now();
+        const dur = 1400;
+        const tick = (t: number) => {
+          const p = Math.min(1, (t - start) / dur);
+          setN(Math.floor(to * (1 - Math.pow(1 - p, 3))));
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    }, { threshold: 0.3 });
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [to]);
+  return <span ref={ref}>{n.toLocaleString()}{suffix}</span>;
+}
 
 const plans = [
   {
@@ -15,6 +41,8 @@ const plans = [
     ],
     cta: "Start free",
     variant: "outline" as const,
+    users: 4200,
+    usersLabel: "students on free plan",
   },
   {
     name: "Pro",
@@ -31,6 +59,8 @@ const plans = [
     cta: "Go Pro",
     variant: "hero" as const,
     highlight: true,
+    users: 5697,
+    usersLabel: "students on Pro",
   },
   {
     name: "Team",
@@ -46,6 +76,8 @@ const plans = [
     ],
     cta: "Get Team",
     variant: "outline" as const,
+    users: 2054,
+    usersLabel: "teams using Team plan",
   },
 ];
 
@@ -63,6 +95,10 @@ export function Pricing() {
           <div className="inline-block text-sm font-semibold text-accent uppercase tracking-wider">Pricing</div>
           <h2 className="text-4xl md:text-5xl font-bold">Simple plans, smarter studying</h2>
           <p className="text-lg text-muted-foreground">Start free. Upgrade when you want unlimited power.</p>
+          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-accent/10 border border-accent/30 px-4 py-2 text-sm font-semibold text-accent">
+            <Users className="h-4 w-4" />
+            <CountUp to={10000} suffix="+" /> students already studying smarter
+          </div>
         </div>
 
         <div className="flex flex-wrap justify-center gap-3 mb-12 max-w-4xl mx-auto">
@@ -99,6 +135,9 @@ export function Pricing() {
                 <span className={p.highlight ? "text-white/60" : "text-muted-foreground"}>{p.period}</span>
               </div>
               <Button variant={p.variant} className="w-full mt-6" size="lg">{p.cta}</Button>
+              <p className={`mt-3 text-xs text-center ${p.highlight ? "text-white/70" : "text-muted-foreground"}`}>
+                <CountUp to={p.users} suffix="+" /> {p.usersLabel}
+              </p>
               <ul className="mt-8 space-y-3">
                 {p.features.map((f) => (
                   <li key={f} className="flex items-start gap-3 text-sm">
