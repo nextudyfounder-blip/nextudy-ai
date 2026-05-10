@@ -16,7 +16,7 @@ export const Server = createServerFn("POST", async ({ data }) => {
       );
     }
 
-    // tijdelijke fake AI response
+    // tijdelijke mock AI response
     return Response.json({
       message: `You said: ${message}`,
     });
