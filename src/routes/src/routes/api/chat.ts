@@ -1,9 +1,4 @@
 import { createServerFn } from "@tanstack/start";
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export const Server = createServerFn("POST", async ({ data }) => {
   try {
@@ -21,27 +16,9 @@ export const Server = createServerFn("POST", async ({ data }) => {
       );
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful AI tutor for students.",
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
-    });
-
-    const reply =
-      completion.choices?.[0]?.message?.content ||
-      "No response generated.";
-
+    // tijdelijke fake AI response
     return Response.json({
-      message: reply,
+      message: `You said: ${message}`,
     });
   } catch (error) {
     console.error(error);
