@@ -81,23 +81,9 @@ function ChatPage() {
         content: currentInput,
       });
 
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: currentInput,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`AI request failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-
+     const data = {
+  message: `You said: ${currentInput}`,
+};
       const aiMessage: Message = {
         role: "assistant",
         content:
