@@ -10,10 +10,7 @@ export function Navbar() {
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border/60">
       <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
         <Link to="/" className="flex items-center gap-2 font-display font-bold text-lg">
-          <span className="h-8 w-8 rounded-lg bg-gradient-accent shadow-glow flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-white" />
-          </span>
-          Nextudy
+<img src="/assets/nextudy-logo.png" alt="Nextudy" className="h-8 w-auto" />
         </Link>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
           <a href="#how-it-works" className="hover:text-foreground transition-smooth">How it works</a>
