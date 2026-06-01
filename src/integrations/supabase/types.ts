@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string | null
+          created_at: string
+          document_id: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id?: string | null
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string | null
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -64,36 +118,120 @@ export type Database = {
           },
         ]
       }
+      feedback: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          message: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          message: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          message?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      game_scores: {
+        Row: {
+          created_at: string
+          game: string
+          id: string
+          score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game: string
+          id?: string
+          score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game?: string
+          id?: string
+          score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          avatar_seed: string | null
+          avatar_style: string
           avatar_url: string | null
           created_at: string
           display_name: string | null
           id: string
           plan: string
           preferred_language: string
+          study_coins: number
           updated_at: string
           uploads_this_month: number
         }
         Insert: {
+          avatar_seed?: string | null
+          avatar_style?: string
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id: string
           plan?: string
           preferred_language?: string
+          study_coins?: number
           updated_at?: string
           uploads_this_month?: number
         }
         Update: {
+          avatar_seed?: string | null
+          avatar_style?: string
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
           plan?: string
           preferred_language?: string
+          study_coins?: number
           updated_at?: string
           uploads_this_month?: number
+        }
+        Relationships: []
+      }
+      usage_daily: {
+        Row: {
+          day: string
+          questions: number
+          updated_at: string
+          uploads: number
+          user_id: string
+        }
+        Insert: {
+          day?: string
+          questions?: number
+          updated_at?: string
+          uploads?: number
+          user_id: string
+        }
+        Update: {
+          day?: string
+          questions?: number
+          updated_at?: string
+          uploads?: number
+          user_id?: string
         }
         Relationships: []
       }
