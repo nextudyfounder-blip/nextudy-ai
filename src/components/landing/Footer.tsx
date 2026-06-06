@@ -13,15 +13,16 @@ export function Footer() {
             Nextudy
           </div>
           <p className="text-sm text-primary-foreground/60">Study less. Know more.</p>
-          <div className="flex gap-6 text-sm text-primary-foreground/70">
-            <Link to="/whats-new" className="hover:text-primary-foreground">What's new</Link>
-            <Link to="/feedback" className="hover:text-primary-foreground">Feedback</Link>
-            <a href="#" className="hover:text-primary-foreground">Privacy</a>
-            <a href="#" className="hover:text-primary-foreground">Terms</a>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-primary-foreground/70">
+            <a href="https://instagram.com/nextudy.app" target="_blank" rel="noopener noreferrer" className="hover:text-primary-foreground transition-colors">@nextudy.app</a>
+            <Link to="/whats-new" className="hover:text-primary-foreground transition-colors">What's new</Link>
+            <Link to="/feedback" className="hover:text-primary-foreground transition-colors">Feedback</Link>
+            <a href="#" className="hover:text-primary-foreground transition-colors">Privacy</a>
+            <a href="#" className="hover:text-primary-foreground transition-colors">Terms</a>
           </div>
         </div>
         <div className="mt-10 pt-8 border-t border-white/10 text-center text-xs text-primary-foreground/50">
-          © {new Date().getFullYear()} Nextudy. All rights reserved.
+          © {new Date().getFullYear()} Nextudy. Study less. Know more.
         </div>
       </div>
     </footer>
