@@ -177,6 +177,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          owned_avatar_styles: string[]
           plan: string
           preferred_language: string
           study_coins: number
@@ -190,6 +191,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          owned_avatar_styles?: string[]
           plan?: string
           preferred_language?: string
           study_coins?: number
@@ -203,6 +205,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          owned_avatar_styles?: string[]
           plan?: string
           preferred_language?: string
           study_coins?: number
