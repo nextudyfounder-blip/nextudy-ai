@@ -96,10 +96,12 @@ export const askChat = createServerFn({ method: "POST" })
     const reply = json.choices?.[0]?.message?.content as string | undefined;
     if (!reply) throw new Error("Empty AI reply");
 
-    await supabase.from("chat_messages").insert([
+    const { data: inserted } = await supabase.from("chat_messages").insert([
       { user_id: userId, role: "user", content: data.message, conversation_id: convId, document_id: data.documentId ?? null },
       { user_id: userId, role: "assistant", content: reply, conversation_id: convId, document_id: data.documentId ?? null },
-    ]);
+    ]).select("id, role");
+    const assistantId = inserted?.find((r) => r.role === "assistant")?.id ?? null;
+    const userMsgId = inserted?.find((r) => r.role === "user")?.id ?? null;
     await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
 
     const { data: existing } = await supabase
@@ -113,7 +115,7 @@ export const askChat = createServerFn({ method: "POST" })
       await supabase.from("usage_daily").insert({ user_id: userId, day: today, questions: 1, uploads: 0 });
     }
 
-    return { reply, conversationId: convId };
+    return { reply, conversationId: convId, assistantId, userMsgId };
   });
 
 export const listConversations = createServerFn({ method: "GET" })
