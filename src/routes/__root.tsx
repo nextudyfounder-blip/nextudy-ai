@@ -45,10 +45,10 @@ export const Route = createRootRoute({
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/0uyBQ9yJV6YGm12UEQAgMgPaiey2/social-images/social-1779741198505-Logo_Nextudy_Wit-achtergrond.webp" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" },
+      { rel: "stylesheet", href: appCss },
     ],
   }),
   shellComponent: RootShell,
