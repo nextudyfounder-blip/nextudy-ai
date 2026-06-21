@@ -16,7 +16,7 @@ import { extractPdfText } from "@/lib/pdf-extract";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
