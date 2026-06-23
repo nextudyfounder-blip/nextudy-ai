@@ -142,33 +142,6 @@ export type Database = {
         }
         Relationships: []
       }
-      game_scores: {
-        Row: {
-          created_at: string
-          game: string
-          id: string
-          score: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          game: string
-          id?: string
-          score?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          game?: string
-          id?: string
-          score?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_seed: string | null
@@ -177,10 +150,8 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
-          owned_avatar_styles: string[]
           plan: string
           preferred_language: string
-          study_coins: number
           updated_at: string
           uploads_this_month: number
         }
@@ -191,10 +162,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
-          owned_avatar_styles?: string[]
           plan?: string
           preferred_language?: string
-          study_coins?: number
           updated_at?: string
           uploads_this_month?: number
         }
@@ -205,10 +174,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
-          owned_avatar_styles?: string[]
           plan?: string
           preferred_language?: string
-          study_coins?: number
           updated_at?: string
           uploads_this_month?: number
         }

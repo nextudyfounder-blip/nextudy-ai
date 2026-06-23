@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsNewRouteImport } from './routes/whats-new'
 import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as GamesRouteImport } from './routes/games'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ChatRouteImport } from './routes/chat'
@@ -26,11 +25,6 @@ const WhatsNewRoute = WhatsNewRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GamesRoute = GamesRouteImport.update({
-  id: '/games',
-  path: '/games',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedbackRoute = FeedbackRouteImport.update({
@@ -65,7 +59,6 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
-  '/games': typeof GamesRoute
   '/profile': typeof ProfileRoute
   '/whats-new': typeof WhatsNewRoute
 }
@@ -75,7 +68,6 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
-  '/games': typeof GamesRoute
   '/profile': typeof ProfileRoute
   '/whats-new': typeof WhatsNewRoute
 }
@@ -86,7 +78,6 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
-  '/games': typeof GamesRoute
   '/profile': typeof ProfileRoute
   '/whats-new': typeof WhatsNewRoute
 }
@@ -98,7 +89,6 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/feedback'
-    | '/games'
     | '/profile'
     | '/whats-new'
   fileRoutesByTo: FileRoutesByTo
@@ -108,7 +98,6 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/feedback'
-    | '/games'
     | '/profile'
     | '/whats-new'
   id:
@@ -118,7 +107,6 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/feedback'
-    | '/games'
     | '/profile'
     | '/whats-new'
   fileRoutesById: FileRoutesById
@@ -129,7 +117,6 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   DashboardRoute: typeof DashboardRoute
   FeedbackRoute: typeof FeedbackRoute
-  GamesRoute: typeof GamesRoute
   ProfileRoute: typeof ProfileRoute
   WhatsNewRoute: typeof WhatsNewRoute
 }
@@ -148,13 +135,6 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/games': {
-      id: '/games'
-      path: '/games'
-      fullPath: '/games'
-      preLoaderRoute: typeof GamesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feedback': {
@@ -201,7 +181,6 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   DashboardRoute: DashboardRoute,
   FeedbackRoute: FeedbackRoute,
-  GamesRoute: GamesRoute,
   ProfileRoute: ProfileRoute,
   WhatsNewRoute: WhatsNewRoute,
 }

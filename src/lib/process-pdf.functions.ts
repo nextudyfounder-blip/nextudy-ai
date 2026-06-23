@@ -143,34 +143,35 @@ export const processPdf = createServerFn({ method: "POST" })
       .eq("id", data.documentId);
     if (updErr) throw new Error(updErr.message);
 
-    // increment monthly uploads counter
-    const { data: profMonthly } = await supabase
+    // increment monthly uploads counter (server-only column)
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: profMonthly } = await supabaseAdmin
       .from("profiles")
       .select("uploads_this_month")
       .eq("id", userId)
       .maybeSingle();
     if (profMonthly) {
-      await supabase
+      await supabaseAdmin
         .from("profiles")
         .update({ uploads_this_month: (profMonthly.uploads_this_month ?? 0) + 1 })
         .eq("id", userId);
     }
 
-    // increment daily uploads counter
-    const { data: existing } = await supabase
+    // increment daily uploads counter (server-only table)
+    const { data: existing } = await supabaseAdmin
       .from("usage_daily")
       .select("uploads, questions")
       .eq("user_id", userId)
       .eq("day", today)
       .maybeSingle();
     if (existing) {
-      await supabase
+      await supabaseAdmin
         .from("usage_daily")
         .update({ uploads: (existing.uploads ?? 0) + 1, updated_at: new Date().toISOString() })
         .eq("user_id", userId)
         .eq("day", today);
     } else {
-      await supabase.from("usage_daily").insert({ user_id: userId, day: today, uploads: 1, questions: 0 });
+      await supabaseAdmin.from("usage_daily").insert({ user_id: userId, day: today, uploads: 1, questions: 0 });
     }
 
     return { ok: true, summary: parsed.summary, questions: parsed.questions };

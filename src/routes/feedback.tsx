@@ -39,10 +39,6 @@ function FeedbackPage() {
       setMessage("");
       setEmail("");
       toast.success("Thanks! Your feedback was sent.");
-      if (user) {
-        const { awardCoins } = await import("@/lib/coins");
-        awardCoins("feedback").then((n) => { if (n !== null) toast.success("+10 Study Coins! 🪙"); });
-      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not send");
     } finally {
