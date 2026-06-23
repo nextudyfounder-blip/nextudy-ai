@@ -11,22 +11,20 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Coins, Shuffle, Check, Lock, FileText, MessageSquare, Gamepad2, Flame } from "lucide-react";
+import { Shuffle, FileText, MessageSquare, Flame } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
   head: () => ({ meta: [
     { title: "Your profile — Nextudy" },
-    { name: "description", content: "Customize your avatar, track Study Coins, and view your stats." },
+    { name: "description", content: "Customize your avatar and view your study stats." },
   ] }),
 });
 
 interface ProfileRow {
   display_name: string | null;
-  study_coins: number;
   avatar_seed: string | null;
   avatar_style: string;
-  owned_avatar_styles: string[];
   uploads_this_month: number;
 }
 
@@ -38,7 +36,7 @@ function ProfilePage() {
   const [displayName, setDisplayName] = useState("");
   const [seed, setSeed] = useState("");
   const [style, setStyle] = useState("adventurer");
-  const [stats, setStats] = useState({ uploads: 0, chats: 0, gamesPlayed: 0 });
+  const [stats, setStats] = useState({ uploads: 0, chats: 0 });
 
   useEffect(() => {
     if (!user) return;
@@ -46,7 +44,7 @@ function ProfilePage() {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("display_name, study_coins, avatar_seed, avatar_style, owned_avatar_styles, uploads_this_month")
+        .select("display_name, avatar_seed, avatar_style, uploads_this_month")
         .eq("id", user.id)
         .maybeSingle();
       if (!active) return;
@@ -57,24 +55,17 @@ function ProfilePage() {
         setSeed(p.avatar_seed ?? user.id.slice(0, 8));
         setStyle(p.avatar_style ?? "adventurer");
       }
-      const [{ count: uploads }, { count: chats }, { data: scores }] = await Promise.all([
+      const [{ count: uploads }, { count: chats }] = await Promise.all([
         supabase.from("documents").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("chat_messages").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("role", "user"),
-        supabase.from("game_scores").select("score").eq("user_id", user.id),
       ]);
       if (active) {
-        setStats({
-          uploads: uploads ?? 0,
-          chats: chats ?? 0,
-          gamesPlayed: scores?.length ?? 0,
-        });
+        setStats({ uploads: uploads ?? 0, chats: chats ?? 0 });
         setLoading(false);
       }
     })();
     return () => { active = false; };
   }, [user]);
-
-  const owned = new Set(profile?.owned_avatar_styles ?? ["adventurer"]);
 
   const saveAvatar = async () => {
     if (!user) return;
@@ -87,20 +78,6 @@ function ProfilePage() {
     if (error) return toast.error("Could not save profile");
     toast.success("Profile saved");
     setProfile((p) => p ? { ...p, avatar_seed: seed, avatar_style: style, display_name: displayName || null } : p);
-  };
-
-  const buyStyle = async (id: string, price: number) => {
-    if (!user || !profile) return;
-    if (profile.study_coins < price) return toast.error("Not enough Study Coins");
-    const nextOwned = Array.from(new Set([...(profile.owned_avatar_styles ?? []), id]));
-    const nextCoins = profile.study_coins - price;
-    const { error } = await supabase
-      .from("profiles")
-      .update({ owned_avatar_styles: nextOwned, study_coins: nextCoins })
-      .eq("id", user.id);
-    if (error) return toast.error("Purchase failed");
-    setProfile({ ...profile, owned_avatar_styles: nextOwned, study_coins: nextCoins });
-    toast.success("Style unlocked!");
   };
 
   return (
@@ -116,20 +93,14 @@ function ProfilePage() {
                 <div className="flex-1 text-center sm:text-left">
                   <h2 className="font-display text-2xl font-bold">{displayName || user?.email}</h2>
                   <p className="text-sm text-muted-foreground">{user?.email}</p>
-                  <div className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30">
-                    <Coins className="h-4 w-4 text-amber-500" />
-                    <span className="font-semibold">{profile?.study_coins ?? 0}</span>
-                    <span className="text-xs text-muted-foreground">Study Coins</span>
-                  </div>
                 </div>
               </CardContent>
             </Card>
 
             <Tabs defaultValue="builder">
-              <TabsList className="grid grid-cols-3 w-full sm:w-auto">
+              <TabsList className="grid grid-cols-2 w-full sm:w-auto">
                 <TabsTrigger value="builder">Avatar</TabsTrigger>
                 <TabsTrigger value="stats">Stats</TabsTrigger>
-                <TabsTrigger value="shop">Shop</TabsTrigger>
               </TabsList>
 
               <TabsContent value="builder" className="space-y-4 mt-4">
@@ -153,9 +124,9 @@ function ProfilePage() {
                     </div>
 
                     <div>
-                      <Label className="mb-2 block">Style (owned)</Label>
+                      <Label className="mb-2 block">Style</Label>
                       <div className="flex flex-wrap gap-3">
-                        {AVATAR_STYLES.filter((s) => owned.has(s.id)).map((s) => (
+                        {AVATAR_STYLES.map((s) => (
                           <button
                             key={s.id}
                             type="button"
@@ -177,46 +148,11 @@ function ProfilePage() {
               </TabsContent>
 
               <TabsContent value="stats" className="space-y-4 mt-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <StatCard icon={FileText} label="Uploads" value={stats.uploads} />
                   <StatCard icon={MessageSquare} label="Chats sent" value={stats.chats} />
-                  <StatCard icon={Gamepad2} label="Games played" value={stats.gamesPlayed} />
                   <StatCard icon={Flame} label="This month" value={profile?.uploads_this_month ?? 0} />
                 </div>
-              </TabsContent>
-
-              <TabsContent value="shop" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader><CardTitle>Avatar shop</CardTitle></CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {AVATAR_STYLES.map((s) => {
-                        const isOwned = owned.has(s.id);
-                        const canAfford = (profile?.study_coins ?? 0) >= s.price;
-                        return (
-                          <div key={s.id} className="rounded-xl border border-border p-3 flex flex-col items-center text-center bg-card">
-                            <Avatar style={s.id} seed={seed} size={64} />
-                            <p className="text-sm font-medium mt-2">{s.name}</p>
-                            {isOwned ? (
-                              <span className="mt-2 inline-flex items-center gap-1 text-xs text-emerald-500"><Check className="h-3 w-3" /> Owned</span>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant={canAfford ? "default" : "outline"}
-                                disabled={!canAfford}
-                                onClick={() => buyStyle(s.id, s.price)}
-                                className="mt-2 gap-1"
-                              >
-                                {canAfford ? <Coins className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                                {s.price}
-                              </Button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
               </TabsContent>
             </Tabs>
           </>

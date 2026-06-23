@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Sparkles, FileText, Bot, Layers, Network, BarChart3, Timer, Sparkle, MessageSquare, Settings, LogOut, Gamepad2, Coins, User as UserIcon } from "lucide-react";
+import { Sparkles, FileText, Bot, Layers, Network, BarChart3, Timer, Sparkle, MessageSquare, Settings, LogOut, User as UserIcon } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +15,6 @@ type Item = { title: string; url: string; icon: typeof FileText; emoji: string; 
 const items: Item[] = [
   { title: "Upload & Summarize", url: "/dashboard", icon: FileText, emoji: "📄" },
   { title: "AI Chatbot", url: "/chat", icon: Bot, emoji: "🤖" },
-  { title: "Games", url: "/games", icon: Gamepad2, emoji: "🎮" },
   { title: "Profile", url: "/profile", icon: UserIcon, emoji: "👤" },
   { title: "Flashcards", url: "/flashcards", icon: Layers, emoji: "🃏", soon: true },
   { title: "Mindmap", url: "/mindmap", icon: Network, emoji: "🗺️", soon: true },
@@ -32,16 +31,14 @@ export function AppSidebar() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
-  const [coins, setCoins] = useState<number>(0);
   const [avatar, setAvatar] = useState<{ style: string; seed: string | null }>({ style: "adventurer", seed: null });
 
   useEffect(() => {
     if (!user) return;
     let active = true;
     const load = async () => {
-      const { data } = await supabase.from("profiles").select("study_coins, avatar_style, avatar_seed").eq("id", user.id).maybeSingle();
+      const { data } = await supabase.from("profiles").select("avatar_style, avatar_seed").eq("id", user.id).maybeSingle();
       if (active && data) {
-        setCoins(data.study_coins ?? 0);
         setAvatar({ style: data.avatar_style ?? "adventurer", seed: data.avatar_seed });
       }
     };
@@ -51,8 +48,7 @@ export function AppSidebar() {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
         (payload) => {
           if (!active) return;
-          const row = payload.new as { study_coins?: number; avatar_style?: string; avatar_seed?: string | null };
-          setCoins(row.study_coins ?? 0);
+          const row = payload.new as { avatar_style?: string; avatar_seed?: string | null };
           setAvatar({ style: row.avatar_style ?? "adventurer", seed: row.avatar_seed ?? null });
         })
       .subscribe();
@@ -108,26 +104,14 @@ export function AppSidebar() {
 
       <SidebarFooter>
         {user && !collapsed && (
-          <>
-            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-1">
-              <Coins className="h-4 w-4 text-amber-500 shrink-0" />
-              <span className="text-xs font-semibold">{coins}</span>
-              <span className="text-[10px] text-muted-foreground ml-auto">Study Coins</span>
+          <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted/40 mb-1">
+            <Link to="/profile" className="shrink-0">
+              <Avatar style={avatar.style} seed={avatar.seed ?? user.id.slice(0, 8)} size={28} />
+            </Link>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium truncate">{user.user_metadata?.display_name || user.email}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
             </div>
-            <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted/40 mb-1">
-              <Link to="/profile" className="shrink-0">
-                <Avatar style={avatar.style} seed={avatar.seed ?? user.id.slice(0, 8)} size={28} />
-              </Link>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium truncate">{user.user_metadata?.display_name || user.email}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
-              </div>
-            </div>
-          </>
-        )}
-        {user && collapsed && (
-          <div className="flex items-center justify-center px-1 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-1" title={`${coins} Study Coins`}>
-            <Coins className="h-4 w-4 text-amber-500" />
           </div>
         )}
         <Button variant="ghost" size="sm" onClick={handleSignOut} className="justify-start">
