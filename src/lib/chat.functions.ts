@@ -104,15 +104,16 @@ export const askChat = createServerFn({ method: "POST" })
     const userMsgId = inserted?.find((r) => r.role === "user")?.id ?? null;
     await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
 
-    const { data: existing } = await supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing } = await supabaseAdmin
       .from("usage_daily").select("questions, uploads")
       .eq("user_id", userId).eq("day", today).maybeSingle();
     if (existing) {
-      await supabase.from("usage_daily")
+      await supabaseAdmin.from("usage_daily")
         .update({ questions: (existing.questions ?? 0) + 1, updated_at: new Date().toISOString() })
         .eq("user_id", userId).eq("day", today);
     } else {
-      await supabase.from("usage_daily").insert({ user_id: userId, day: today, questions: 1, uploads: 0 });
+      await supabaseAdmin.from("usage_daily").insert({ user_id: userId, day: today, questions: 1, uploads: 0 });
     }
 
     return { reply, conversationId: convId, assistantId, userMsgId };
