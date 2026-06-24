@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { setGuest } from "@/hooks/useGuest";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
