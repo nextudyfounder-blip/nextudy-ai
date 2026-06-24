@@ -135,6 +135,7 @@ function ChatPage() {
     setConvId(null);
     setDocId(null);
     setDocName(null);
+    setPendingImage(null);
     textareaRef.current?.focus();
   };
 
@@ -153,21 +154,34 @@ function ChatPage() {
 
   const send = async (text: string) => {
     const message = text.trim();
-    if (!message || busy || !user) return;
-    setMessages((m) => [...m, { role: "user", content: message }]);
+    if (!message || busy) return;
+    if (!user && !guest) return;
+    const imgB64 = pendingImage?.b64 ?? null;
+    const imgMime = pendingImage?.mime ?? null;
+    const userBubble = pendingImage
+      ? `${message}\n\n_📎 ${pendingImage.name}_`
+      : message;
+    setMessages((m) => [...m, { role: "user", content: userBubble }]);
     setInput("");
+    setPendingImage(null);
     setBusy(true);
     try {
-      const res = await askFn({ data: { message, conversationId: convId, documentId: docId } });
-      setConvId(res.conversationId);
-      setMessages((m) => {
-        const next = [...m];
-        const lastUser = [...next].reverse().find((x) => x.role === "user" && !x.id);
-        if (lastUser && res.userMsgId) lastUser.id = res.userMsgId;
-        next.push({ id: res.assistantId ?? undefined, role: "assistant", content: res.reply });
-        return next;
-      });
-      refreshConvs();
+      if (guest) {
+        const hist = messages.slice(-12).map((m) => ({ role: m.role, content: m.content }));
+        const res = await askGuestFn({ data: { message, history: hist, imageBase64: imgB64, imageMimeType: imgMime } });
+        setMessages((m) => [...m, { role: "assistant", content: res.reply }]);
+      } else {
+        const res = await askFn({ data: { message, conversationId: convId, documentId: docId, imageBase64: imgB64, imageMimeType: imgMime } });
+        setConvId(res.conversationId);
+        setMessages((m) => {
+          const next = [...m];
+          const lastUser = [...next].reverse().find((x) => x.role === "user" && !x.id);
+          if (lastUser && res.userMsgId) lastUser.id = res.userMsgId;
+          next.push({ id: res.assistantId ?? undefined, role: "assistant", content: res.reply });
+          return next;
+        });
+        refreshConvs();
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       toast.error(msg);
@@ -187,19 +201,42 @@ function ChatPage() {
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
     if (file.size > 20 * 1024 * 1024) { toast.error("Max 20MB"); return; }
+
+    // Guest: attach image inline only, no DB
+    if (guest) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Guests can only attach images. Sign up to upload PDFs.");
+        if (fileRef.current) fileRef.current.value = "";
+        return;
+      }
+      try {
+        const b64 = await fileToBase64(file);
+        setPendingImage({ b64, mime: file.type, name: file.name });
+        toast.success(`🖼️ ${file.name} attached`);
+      } catch {
+        toast.error("Could not read image");
+      } finally {
+        if (fileRef.current) fileRef.current.value = "";
+      }
+      return;
+    }
+
+    if (!user) return;
     setBusy(true);
     try {
+      // For images: attach as vision input AND OCR for document context
+      if (file.type.startsWith("image/")) {
+        const b64 = await fileToBase64(file);
+        setPendingImage({ b64, mime: file.type, name: file.name });
+        toast.success(`🖼️ ${file.name} attached — ask anything about it`);
+        return;
+      }
       let text = "";
       if (file.type === "application/pdf") {
         toast.info("Reading PDF…");
         text = await extractPdfText(file);
-      } else if (file.type.startsWith("image/")) {
-        toast.info("Reading image…");
-        const b64 = await fileToBase64(file);
-        const r = await ocrFn({ data: { imageBase64: b64, mimeType: file.type as "image/png" } });
-        text = r.text;
       } else {
         toast.error("Upload a PDF or image");
         return;
@@ -208,9 +245,10 @@ function ChatPage() {
       const path = `${user.id}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("pdfs").upload(path, file);
       if (upErr) throw upErr;
+      // Insert only required columns — let Supabase fill id/created_at/status default
       const { data: doc, error: insErr } = await supabase
         .from("documents")
-        .insert({ user_id: user.id, file_name: file.name, storage_path: path, status: "pending" })
+        .insert({ user_id: user.id, file_name: file.name, storage_path: path })
         .select("id").single();
       if (insErr) throw insErr;
       await processFn({ data: { documentId: doc.id, text } });
@@ -224,6 +262,8 @@ function ChatPage() {
       if (fileRef.current) fileRef.current.value = "";
     }
   };
+  // unused (vision uses direct b64): keep ocrFn reference satisfied
+  void ocrFn;
 
   // Voice input
   const toggleMic = () => {
