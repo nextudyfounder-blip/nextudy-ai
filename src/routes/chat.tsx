@@ -540,21 +540,36 @@ function ChatPage() {
           {/* Floating input capsule */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-8 pb-4 px-4">
             <div className="max-w-3xl mx-auto">
-              {docName && (
+              {(docName || pendingImage) && (
                 <div className="flex items-center gap-2 mb-2 text-xs bg-accent/20 border border-accent/40 rounded-full px-3 py-1.5 w-fit animate-fade-in mx-auto">
-                  <Paperclip className="h-3 w-3" />
-                  <span className="truncate max-w-[200px]">{docName}</span>
-                  <button onClick={() => { setDocId(null); setDocName(null); }} className="hover:text-foreground"><X className="h-3 w-3" /></button>
+                  {pendingImage ? <ImageIcon className="h-3 w-3" /> : <Paperclip className="h-3 w-3" />}
+                  <span className="truncate max-w-[200px]">{pendingImage?.name ?? docName}</span>
+                  <button onClick={() => { setDocId(null); setDocName(null); setPendingImage(null); }} className="hover:text-foreground"><X className="h-3 w-3" /></button>
                 </div>
               )}
               <form
                 onSubmit={(e) => { e.preventDefault(); send(input); }}
                 className="flex items-end gap-1 rounded-3xl border border-border bg-card shadow-elegant px-3 py-2 focus-within:border-primary/40 focus-within:shadow-glow transition-all"
               >
-                <input ref={fileRef} type="file" accept="application/pdf,image/*" className="hidden" onChange={onFile} />
-                <Button type="button" variant="ghost" size="icon" className="rounded-full shrink-0" onClick={() => fileRef.current?.click()} disabled={busy} title="Attach PDF or image">
-                  <Plus className="h-5 w-5" />
-                </Button>
+                <input ref={fileRef} type="file" accept={guest ? "image/*" : "application/pdf,image/*"} className="hidden" onChange={onFile} />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon" className="rounded-full shrink-0" disabled={busy} title="Attach">
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" side="top">
+                    <DropdownMenuItem onClick={() => fileRef.current?.click()}>
+                      <Paperclip className="h-3.5 w-3.5 mr-2" />
+                      {guest ? "Upload image" : "Upload PDF or image"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem disabled className="opacity-60">
+                      <ImageIcon className="h-3.5 w-3.5 mr-2" />
+                      Image Generation
+                      <span className="ml-auto text-[10px] uppercase tracking-wider text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded">Soon</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <textarea
                   ref={textareaRef}
                   value={input}
