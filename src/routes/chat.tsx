@@ -451,7 +451,7 @@ function ChatPage() {
               {messages.length === 0 && !busy && (
                 <div className="text-center pt-12 sm:pt-20 animate-fade-in">
                   <h1 className="text-4xl sm:text-5xl font-display font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                    Hello{user?.email ? `, ${user.email.split("@")[0]}` : ""}
+                    Hello{guest ? ", Guest" : user?.email ? `, ${user.email.split("@")[0]}` : ""}
                   </h1>
                   <p className="text-2xl sm:text-3xl font-display font-semibold text-muted-foreground mt-1">
                     How can Nextudy help you study today?
