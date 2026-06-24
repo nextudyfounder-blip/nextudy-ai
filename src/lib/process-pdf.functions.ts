@@ -146,7 +146,6 @@ export const processPdf = createServerFn({ method: "POST" })
     if (updErr) throw new Error(updErr.message);
 
     // increment monthly uploads counter (server-only column)
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: profMonthly } = await supabaseAdmin
       .from("profiles")
       .select("uploads_this_month")
