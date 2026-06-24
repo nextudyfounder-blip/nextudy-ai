@@ -57,8 +57,10 @@ const REMINDER_KEY = "nextudy-pro-reminder";
 
 function ChatPage() {
   const { user } = useAuth();
+  const guest = useGuest();
   const navigate = useNavigate();
   const askFn = useServerFn(askChat);
+  const askGuestFn = useServerFn(askChatGuest);
   const listFn = useServerFn(listConversations);
   const getFn = useServerFn(getConversation);
   const delFn = useServerFn(deleteConversation);
@@ -75,6 +77,8 @@ function ChatPage() {
   const [docId, setDocId] = useState<string | null>(null);
   const [docName, setDocName] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
+  const [search, setSearch] = useState("");
+  const [pendingImage, setPendingImage] = useState<{ b64: string; mime: string; name: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
