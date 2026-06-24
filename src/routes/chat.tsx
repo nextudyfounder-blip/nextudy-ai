@@ -34,7 +34,7 @@ import {
   Send, Plus, Loader2, Sparkles, Paperclip, X, Mic, MicOff,
   ThumbsUp, ThumbsDown, Copy, Share2, Wand2, ShieldCheck,
   MessageSquarePlus, MoreHorizontal, Pencil, Trash2, BookOpen,
-  Code2, Brain, FileText,
+  Code2, Brain, FileText, Search, Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
