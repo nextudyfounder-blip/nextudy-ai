@@ -86,7 +86,7 @@ export const askChat = createServerFn({ method: "POST" })
     const messages = [
       { role: "system" as const, content: systemPrompt },
       ...((history ?? []).map((m) => ({ role: m.role as "user" | "assistant", content: m.content }))),
-      { role: "user" as const, content: data.message },
+      { role: "user" as const, content: buildUserContent(data.message, data.imageBase64, data.imageMimeType) },
     ];
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
