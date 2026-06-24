@@ -350,19 +350,25 @@ function ChatPage() {
     }
   };
 
+  const filteredConvs = useMemo(() => {
+    if (!search.trim()) return conversations;
+    const q = search.toLowerCase();
+    return conversations.filter((c) => (c.title || "").toLowerCase().includes(q));
+  }, [conversations, search]);
+
   const grouped = useMemo(() => {
     const today: Conv[] = [];
     const week: Conv[] = [];
     const older: Conv[] = [];
     const now = Date.now();
-    for (const c of conversations) {
+    for (const c of filteredConvs) {
       const age = (now - new Date(c.updated_at).getTime()) / 86_400_000;
       if (age < 1) today.push(c);
       else if (age < 7) week.push(c);
       else older.push(c);
     }
     return { today, week, older };
-  }, [conversations]);
+  }, [filteredConvs]);
 
   return (
     <AppLayout title="">
