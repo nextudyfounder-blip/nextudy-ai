@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useGuest } from "@/hooks/useGuest";
 import { useServerFn } from "@tanstack/react-start";
 import {
   askChat,
+  askChatGuest,
   listConversations,
   getConversation,
   deleteConversation,
@@ -14,6 +16,7 @@ import { processPdf } from "@/lib/process-pdf.functions";
 import { ocrImage } from "@/lib/ocr.functions";
 import { extractPdfText } from "@/lib/pdf-extract";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 
