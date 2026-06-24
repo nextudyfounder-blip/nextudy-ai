@@ -222,3 +222,39 @@ export const modifyResponse = createServerFn({ method: "POST" })
     await supabase.from("chat_messages").update({ content: reply }).eq("id", data.messageId).eq("user_id", userId);
     return { content: reply };
   });
+
+// ---- Guest (no persistence) ----
+const guestSchema = z.object({
+  message: z.string().min(1).max(4000),
+  history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() })).max(40).optional(),
+  imageBase64: z.string().optional().nullable(),
+  imageMimeType: z.string().optional().nullable(),
+});
+
+export const askChatGuest = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => guestSchema.parse(d))
+  .handler(async ({ data }) => {
+    const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+    if (!LOVABLE_API_KEY) throw new Error("AI key not configured");
+    const messages = [
+      { role: "system" as const, content: "You are Nextudy, a friendly AI study tutor. Be helpful and clear. Use markdown. Note: the user is a guest and chat history is not saved." },
+      ...((data.history ?? []).map((m) => ({ role: m.role, content: m.content }))),
+      { role: "user" as const, content: buildUserContent(data.message, data.imageBase64, data.imageMimeType) },
+    ];
+    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "google/gemini-2.5-flash", messages }),
+    });
+    if (!aiResp.ok) {
+      const t = await aiResp.text();
+      if (aiResp.status === 429) throw new Error("Too many requests, slow down a moment.");
+      if (aiResp.status === 402) throw new Error("AI credits exhausted.");
+      throw new Error(`AI error: ${t.slice(0, 200)}`);
+    }
+    const json = await aiResp.json();
+    const reply = json.choices?.[0]?.message?.content as string | undefined;
+    if (!reply) throw new Error("Empty AI reply");
+    return { reply };
+  });
+
