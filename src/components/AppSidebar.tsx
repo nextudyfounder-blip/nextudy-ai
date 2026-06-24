@@ -178,7 +178,7 @@ export function AppSidebar() {
             {!collapsed && <span className="ml-2">Sign out</span>}
           </Button>
         )}
-        {(() => { void toast; return null; })()}
+        
       </SidebarFooter>
     </Sidebar>
   );
