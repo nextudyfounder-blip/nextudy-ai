@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
+
 
 type Item = { title: string; url: string; icon: typeof FileText; emoji: string; soon?: boolean };
 const items: Item[] = [
