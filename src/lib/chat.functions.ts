@@ -8,7 +8,17 @@ const askSchema = z.object({
   message: z.string().min(1).max(4000),
   conversationId: z.string().uuid().optional().nullable(),
   documentId: z.string().uuid().optional().nullable(),
+  imageBase64: z.string().optional().nullable(),
+  imageMimeType: z.string().optional().nullable(),
 });
+
+function buildUserContent(message: string, imageBase64?: string | null, mime?: string | null) {
+  if (!imageBase64) return message;
+  return [
+    { type: "text", text: message },
+    { type: "image_url", image_url: { url: `data:${mime ?? "image/png"};base64,${imageBase64}` } },
+  ];
+}
 
 export const askChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
