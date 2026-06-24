@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { setGuest } from "@/hooks/useGuest";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -116,6 +117,16 @@ function AuthPage() {
               {mode === "signin" ? "Sign in" : "Create account"}
             </Button>
           </form>
+
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full mt-3"
+            onClick={() => { setGuest(true); navigate({ to: "/chat" }); }}
+            disabled={busy}
+          >
+            Continue as Guest →
+          </Button>
 
           <p className="text-sm text-center text-muted-foreground mt-6">
             {mode === "signin" ? "New to Nextudy? " : "Already have an account? "}

@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useGuest } from "@/hooks/useGuest";
 import { useServerFn } from "@tanstack/react-start";
 import {
   askChat,
+  askChatGuest,
   listConversations,
   getConversation,
   deleteConversation,
@@ -14,6 +16,7 @@ import { processPdf } from "@/lib/process-pdf.functions";
 import { ocrImage } from "@/lib/ocr.functions";
 import { extractPdfText } from "@/lib/pdf-extract";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 
@@ -31,7 +34,7 @@ import {
   Send, Plus, Loader2, Sparkles, Paperclip, X, Mic, MicOff,
   ThumbsUp, ThumbsDown, Copy, Share2, Wand2, ShieldCheck,
   MessageSquarePlus, MoreHorizontal, Pencil, Trash2, BookOpen,
-  Code2, Brain, FileText,
+  Code2, Brain, FileText, Search, Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -54,8 +57,10 @@ const REMINDER_KEY = "nextudy-pro-reminder";
 
 function ChatPage() {
   const { user } = useAuth();
+  const guest = useGuest();
   const navigate = useNavigate();
   const askFn = useServerFn(askChat);
+  const askGuestFn = useServerFn(askChatGuest);
   const listFn = useServerFn(listConversations);
   const getFn = useServerFn(getConversation);
   const delFn = useServerFn(deleteConversation);
@@ -72,6 +77,8 @@ function ChatPage() {
   const [docId, setDocId] = useState<string | null>(null);
   const [docName, setDocName] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
+  const [search, setSearch] = useState("");
+  const [pendingImage, setPendingImage] = useState<{ b64: string; mime: string; name: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -128,6 +135,7 @@ function ChatPage() {
     setConvId(null);
     setDocId(null);
     setDocName(null);
+    setPendingImage(null);
     textareaRef.current?.focus();
   };
 
@@ -146,21 +154,34 @@ function ChatPage() {
 
   const send = async (text: string) => {
     const message = text.trim();
-    if (!message || busy || !user) return;
-    setMessages((m) => [...m, { role: "user", content: message }]);
+    if (!message || busy) return;
+    if (!user && !guest) return;
+    const imgB64 = pendingImage?.b64 ?? null;
+    const imgMime = pendingImage?.mime ?? null;
+    const userBubble = pendingImage
+      ? `${message}\n\n_📎 ${pendingImage.name}_`
+      : message;
+    setMessages((m) => [...m, { role: "user", content: userBubble }]);
     setInput("");
+    setPendingImage(null);
     setBusy(true);
     try {
-      const res = await askFn({ data: { message, conversationId: convId, documentId: docId } });
-      setConvId(res.conversationId);
-      setMessages((m) => {
-        const next = [...m];
-        const lastUser = [...next].reverse().find((x) => x.role === "user" && !x.id);
-        if (lastUser && res.userMsgId) lastUser.id = res.userMsgId;
-        next.push({ id: res.assistantId ?? undefined, role: "assistant", content: res.reply });
-        return next;
-      });
-      refreshConvs();
+      if (guest) {
+        const hist = messages.slice(-12).map((m) => ({ role: m.role, content: m.content }));
+        const res = await askGuestFn({ data: { message, history: hist, imageBase64: imgB64, imageMimeType: imgMime } });
+        setMessages((m) => [...m, { role: "assistant", content: res.reply }]);
+      } else {
+        const res = await askFn({ data: { message, conversationId: convId, documentId: docId, imageBase64: imgB64, imageMimeType: imgMime } });
+        setConvId(res.conversationId);
+        setMessages((m) => {
+          const next = [...m];
+          const lastUser = [...next].reverse().find((x) => x.role === "user" && !x.id);
+          if (lastUser && res.userMsgId) lastUser.id = res.userMsgId;
+          next.push({ id: res.assistantId ?? undefined, role: "assistant", content: res.reply });
+          return next;
+        });
+        refreshConvs();
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       toast.error(msg);
@@ -180,19 +201,42 @@ function ChatPage() {
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
     if (file.size > 20 * 1024 * 1024) { toast.error("Max 20MB"); return; }
+
+    // Guest: attach image inline only, no DB
+    if (guest) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Guests can only attach images. Sign up to upload PDFs.");
+        if (fileRef.current) fileRef.current.value = "";
+        return;
+      }
+      try {
+        const b64 = await fileToBase64(file);
+        setPendingImage({ b64, mime: file.type, name: file.name });
+        toast.success(`🖼️ ${file.name} attached`);
+      } catch {
+        toast.error("Could not read image");
+      } finally {
+        if (fileRef.current) fileRef.current.value = "";
+      }
+      return;
+    }
+
+    if (!user) return;
     setBusy(true);
     try {
+      // For images: attach as vision input AND OCR for document context
+      if (file.type.startsWith("image/")) {
+        const b64 = await fileToBase64(file);
+        setPendingImage({ b64, mime: file.type, name: file.name });
+        toast.success(`🖼️ ${file.name} attached — ask anything about it`);
+        return;
+      }
       let text = "";
       if (file.type === "application/pdf") {
         toast.info("Reading PDF…");
         text = await extractPdfText(file);
-      } else if (file.type.startsWith("image/")) {
-        toast.info("Reading image…");
-        const b64 = await fileToBase64(file);
-        const r = await ocrFn({ data: { imageBase64: b64, mimeType: file.type as "image/png" } });
-        text = r.text;
       } else {
         toast.error("Upload a PDF or image");
         return;
@@ -201,9 +245,10 @@ function ChatPage() {
       const path = `${user.id}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("pdfs").upload(path, file);
       if (upErr) throw upErr;
+      // Insert only required columns — let Supabase fill id/created_at/status default
       const { data: doc, error: insErr } = await supabase
         .from("documents")
-        .insert({ user_id: user.id, file_name: file.name, storage_path: path, status: "pending" })
+        .insert({ user_id: user.id, file_name: file.name, storage_path: path })
         .select("id").single();
       if (insErr) throw insErr;
       await processFn({ data: { documentId: doc.id, text } });
@@ -217,6 +262,8 @@ function ChatPage() {
       if (fileRef.current) fileRef.current.value = "";
     }
   };
+  // unused (vision uses direct b64): keep ocrFn reference satisfied
+  void ocrFn;
 
   // Voice input
   const toggleMic = () => {
@@ -303,59 +350,91 @@ function ChatPage() {
     }
   };
 
+  const filteredConvs = useMemo(() => {
+    if (!search.trim()) return conversations;
+    const q = search.toLowerCase();
+    return conversations.filter((c) => (c.title || "").toLowerCase().includes(q));
+  }, [conversations, search]);
+
   const grouped = useMemo(() => {
     const today: Conv[] = [];
     const week: Conv[] = [];
     const older: Conv[] = [];
     const now = Date.now();
-    for (const c of conversations) {
+    for (const c of filteredConvs) {
       const age = (now - new Date(c.updated_at).getTime()) / 86_400_000;
       if (age < 1) today.push(c);
       else if (age < 7) week.push(c);
       else older.push(c);
     }
     return { today, week, older };
-  }, [conversations]);
+  }, [filteredConvs]);
 
   return (
     <AppLayout title="">
       <div className="flex h-[calc(100vh-3.5rem)] bg-gradient-to-br from-background via-background to-primary/5">
         {/* Chat-history sidebar */}
         <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card/40 backdrop-blur">
-          <div className="p-3 border-b border-border">
+          <div className="p-3 border-b border-border space-y-2">
             <Button onClick={startNewChat} variant="hero" className="w-full justify-start gap-2">
               <MessageSquarePlus className="h-4 w-4" />
               New chat
             </Button>
+            {!guest && (
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search chats…"
+                  className="h-8 pl-8 text-xs"
+                />
+              </div>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-4 text-sm">
-            {[
-              { label: "Today", items: grouped.today },
-              { label: "Previous 7 days", items: grouped.week },
-              { label: "Older", items: grouped.older },
-            ].map(({ label, items }) => items.length > 0 && (
-              <div key={label}>
-                <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
-                {items.map((c) => (
-                  <div key={c.id} className={`group flex items-center gap-1 rounded-lg px-2 py-1.5 hover:bg-accent/40 cursor-pointer ${convId === c.id ? "bg-accent/60" : ""}`}>
-                    <button onClick={() => openConv(c.id)} className="flex-1 text-left truncate">
-                      {c.title || "Untitled chat"}
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-background"><MoreHorizontal className="h-3.5 w-3.5" /></button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleRename(c.id, c.title || "")}><Pencil className="h-3.5 w-3.5 mr-2" />Rename</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive"><Trash2 className="h-3.5 w-3.5 mr-2" />Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+            {guest ? (
+              <div className="m-2 p-3 rounded-lg border border-dashed border-border bg-muted/30">
+                <p className="text-xs font-medium">You're chatting as a Guest</p>
+                <p className="text-[11px] text-muted-foreground mt-1">Chats aren't saved. Sign up to keep your history.</p>
+                <Button size="sm" variant="hero" className="w-full mt-2" onClick={() => navigate({ to: "/auth" })}>
+                  Sign up free
+                </Button>
+              </div>
+            ) : (
+              <>
+                {[
+                  { label: "Today", items: grouped.today },
+                  { label: "Previous 7 days", items: grouped.week },
+                  { label: "Older", items: grouped.older },
+                ].map(({ label, items }) => items.length > 0 && (
+                  <div key={label}>
+                    <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
+                    {items.map((c) => (
+                      <div key={c.id} className={`group flex items-center gap-1 rounded-lg px-2 py-1.5 hover:bg-accent/40 cursor-pointer ${convId === c.id ? "bg-accent/60" : ""}`}>
+                        <button onClick={() => openConv(c.id)} className="flex-1 text-left truncate">
+                          {c.title || "Untitled chat"}
+                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-background"><MoreHorizontal className="h-3.5 w-3.5" /></button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleRename(c.id, c.title || "")}><Pencil className="h-3.5 w-3.5 mr-2" />Rename</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive"><Trash2 className="h-3.5 w-3.5 mr-2" />Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    ))}
                   </div>
                 ))}
-              </div>
-            ))}
-            {conversations.length === 0 && (
-              <p className="text-xs text-muted-foreground px-2 py-4">No chats yet. Start one below.</p>
+                {conversations.length === 0 && (
+                  <p className="text-xs text-muted-foreground px-2 py-4">No chats yet. Start one below.</p>
+                )}
+                {conversations.length > 0 && filteredConvs.length === 0 && (
+                  <p className="text-xs text-muted-foreground px-2 py-4">No chats match "{search}".</p>
+                )}
+              </>
             )}
           </div>
           <div className="border-t border-border p-2 text-xs text-muted-foreground space-y-1">
@@ -372,7 +451,7 @@ function ChatPage() {
               {messages.length === 0 && !busy && (
                 <div className="text-center pt-12 sm:pt-20 animate-fade-in">
                   <h1 className="text-4xl sm:text-5xl font-display font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                    Hello{user?.email ? `, ${user.email.split("@")[0]}` : ""}
+                    Hello{guest ? ", Guest" : user?.email ? `, ${user.email.split("@")[0]}` : ""}
                   </h1>
                   <p className="text-2xl sm:text-3xl font-display font-semibold text-muted-foreground mt-1">
                     How can Nextudy help you study today?
@@ -461,21 +540,36 @@ function ChatPage() {
           {/* Floating input capsule */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-8 pb-4 px-4">
             <div className="max-w-3xl mx-auto">
-              {docName && (
+              {(docName || pendingImage) && (
                 <div className="flex items-center gap-2 mb-2 text-xs bg-accent/20 border border-accent/40 rounded-full px-3 py-1.5 w-fit animate-fade-in mx-auto">
-                  <Paperclip className="h-3 w-3" />
-                  <span className="truncate max-w-[200px]">{docName}</span>
-                  <button onClick={() => { setDocId(null); setDocName(null); }} className="hover:text-foreground"><X className="h-3 w-3" /></button>
+                  {pendingImage ? <ImageIcon className="h-3 w-3" /> : <Paperclip className="h-3 w-3" />}
+                  <span className="truncate max-w-[200px]">{pendingImage?.name ?? docName}</span>
+                  <button onClick={() => { setDocId(null); setDocName(null); setPendingImage(null); }} className="hover:text-foreground"><X className="h-3 w-3" /></button>
                 </div>
               )}
               <form
                 onSubmit={(e) => { e.preventDefault(); send(input); }}
                 className="flex items-end gap-1 rounded-3xl border border-border bg-card shadow-elegant px-3 py-2 focus-within:border-primary/40 focus-within:shadow-glow transition-all"
               >
-                <input ref={fileRef} type="file" accept="application/pdf,image/*" className="hidden" onChange={onFile} />
-                <Button type="button" variant="ghost" size="icon" className="rounded-full shrink-0" onClick={() => fileRef.current?.click()} disabled={busy} title="Attach PDF or image">
-                  <Plus className="h-5 w-5" />
-                </Button>
+                <input ref={fileRef} type="file" accept={guest ? "image/*" : "application/pdf,image/*"} className="hidden" onChange={onFile} />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon" className="rounded-full shrink-0" disabled={busy} title="Attach">
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" side="top">
+                    <DropdownMenuItem onClick={() => fileRef.current?.click()}>
+                      <Paperclip className="h-3.5 w-3.5 mr-2" />
+                      {guest ? "Upload image" : "Upload PDF or image"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem disabled className="opacity-60">
+                      <ImageIcon className="h-3.5 w-3.5 mr-2" />
+                      Image Generation
+                      <span className="ml-auto text-[10px] uppercase tracking-wider text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded">Soon</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <textarea
                   ref={textareaRef}
                   value={input}

@@ -50,7 +50,9 @@ export const processPdf = createServerFn({ method: "POST" })
       throw new Error("Document not found");
     }
 
-    await supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    await supabaseAdmin
       .from("documents")
       .update({ status: "processing", extracted_text: data.text.slice(0, 100000) })
       .eq("id", data.documentId);
@@ -115,7 +117,7 @@ export const processPdf = createServerFn({ method: "POST" })
           : aiResp.status === 402
             ? "AI credits exhausted. Add funds in Workspace > Usage."
             : `AI error ${aiResp.status}: ${txt.slice(0, 200)}`;
-      await supabase
+      await supabaseAdmin
         .from("documents")
         .update({ status: "failed", error: errMsg })
         .eq("id", data.documentId);
@@ -132,7 +134,7 @@ export const processPdf = createServerFn({ method: "POST" })
       questions: { question: string; answer: string }[];
     };
 
-    const { error: updErr } = await supabase
+    const { error: updErr } = await supabaseAdmin
       .from("documents")
       .update({
         summary: parsed.summary,
@@ -144,7 +146,6 @@ export const processPdf = createServerFn({ method: "POST" })
     if (updErr) throw new Error(updErr.message);
 
     // increment monthly uploads counter (server-only column)
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: profMonthly } = await supabaseAdmin
       .from("profiles")
       .select("uploads_this_month")
