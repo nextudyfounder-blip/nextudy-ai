@@ -50,7 +50,9 @@ export const processPdf = createServerFn({ method: "POST" })
       throw new Error("Document not found");
     }
 
-    await supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    await supabaseAdmin
       .from("documents")
       .update({ status: "processing", extracted_text: data.text.slice(0, 100000) })
       .eq("id", data.documentId);
