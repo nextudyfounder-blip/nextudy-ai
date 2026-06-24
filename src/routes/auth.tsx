@@ -118,6 +118,16 @@ function AuthPage() {
             </Button>
           </form>
 
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full mt-3"
+            onClick={() => { setGuest(true); navigate({ to: "/chat" }); }}
+            disabled={busy}
+          >
+            Continue as Guest →
+          </Button>
+
           <p className="text-sm text-center text-muted-foreground mt-6">
             {mode === "signin" ? "New to Nextudy? " : "Already have an account? "}
             <button
