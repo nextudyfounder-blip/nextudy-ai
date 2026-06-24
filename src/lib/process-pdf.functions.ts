@@ -117,7 +117,7 @@ export const processPdf = createServerFn({ method: "POST" })
           : aiResp.status === 402
             ? "AI credits exhausted. Add funds in Workspace > Usage."
             : `AI error ${aiResp.status}: ${txt.slice(0, 200)}`;
-      await supabase
+      await supabaseAdmin
         .from("documents")
         .update({ status: "failed", error: errMsg })
         .eq("id", data.documentId);
@@ -134,7 +134,7 @@ export const processPdf = createServerFn({ method: "POST" })
       questions: { question: string; answer: string }[];
     };
 
-    const { error: updErr } = await supabase
+    const { error: updErr } = await supabaseAdmin
       .from("documents")
       .update({
         summary: parsed.summary,
