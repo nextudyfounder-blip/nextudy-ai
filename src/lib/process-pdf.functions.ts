@@ -26,7 +26,7 @@ export const processPdf = createServerFn({ method: "POST" })
       .select("plan")
       .eq("id", userId)
       .maybeSingle();
-    const isFree = (prof?.plan ?? "free") === "free";
+    const isFree = false; // TEMP PREVIEW OVERRIDE: treat all users as pro
     const today = new Date().toISOString().slice(0, 10);
     if (isFree) {
       const { data: usage } = await supabase
