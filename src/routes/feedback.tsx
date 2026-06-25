@@ -21,6 +21,14 @@ function FeedbackPage() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
+  const ADMIN_EMAIL = "nextudy.founder@gmail.com";
+
+  const openMailto = (msg: string, from: string) => {
+    const subject = encodeURIComponent("Nextudy feedback");
+    const body = encodeURIComponent(`${msg}\n\n— from: ${from || "anonymous"}`);
+    window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, "_blank");
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim().length < 5) {
@@ -28,19 +36,27 @@ function FeedbackPage() {
       return;
     }
     setBusy(true);
+    const from = email || user?.email || "";
+    const msg = message.trim();
     try {
       const { error } = await supabase.from("feedback").insert({
         user_id: user?.id ?? null,
-        email: email || user?.email || null,
-        message: message.trim(),
+        email: from || null,
+        message: msg,
       });
       if (error) throw error;
       setSent(true);
       setMessage("");
       setEmail("");
       toast.success("Thanks! Your feedback was sent.");
+      openMailto(msg, from);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not send");
+      // Fall back to direct email if DB insert fails
+      openMailto(msg, from);
+      toast.message("Opened your email app as a fallback", {
+        description: err instanceof Error ? err.message : "Saved locally — please send the email to deliver it.",
+      });
+      setSent(true);
     } finally {
       setBusy(false);
     }
@@ -51,7 +67,7 @@ function FeedbackPage() {
       <header className="border-b border-border">
         <div className="max-w-4xl mx-auto flex items-center justify-between px-6 h-16">
           <Link to="/" className="flex items-center gap-2 font-display font-bold">
-            <span className="h-8 w-8 rounded-lg bg-gradient-accent shadow-glow flex items-center justify-center">
+          <span className="h-8 w-8 rounded-xl overflow-hidden bg-gradient-accent shadow-glow flex items-center justify-center">
               <Sparkles className="h-4 w-4 text-white" />
             </span>
             Nextudy

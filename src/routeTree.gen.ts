@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsNewRouteImport } from './routes/whats-new'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -20,6 +21,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const WhatsNewRoute = WhatsNewRouteImport.update({
   id: '/whats-new',
   path: '/whats-new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/whats-new': typeof WhatsNewRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/whats-new': typeof WhatsNewRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
   '/whats-new': typeof WhatsNewRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feedback'
     | '/profile'
+    | '/settings'
     | '/whats-new'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feedback'
     | '/profile'
+    | '/settings'
     | '/whats-new'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/feedback'
     | '/profile'
+    | '/settings'
     | '/whats-new'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FeedbackRoute: typeof FeedbackRoute
   ProfileRoute: typeof ProfileRoute
+  SettingsRoute: typeof SettingsRoute
   WhatsNewRoute: typeof WhatsNewRoute
 }
 
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/whats-new'
       fullPath: '/whats-new'
       preLoaderRoute: typeof WhatsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FeedbackRoute: FeedbackRoute,
   ProfileRoute: ProfileRoute,
+  SettingsRoute: SettingsRoute,
   WhatsNewRoute: WhatsNewRoute,
 }
 export const routeTree = rootRouteImport
