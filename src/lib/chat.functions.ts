@@ -4,12 +4,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const FREE_DAILY_QUESTIONS = 20;
 
+const IMAGE_MIME_RE = /^image\/(png|jpeg|jpg|webp|heic)$/i;
+
 const askSchema = z.object({
   message: z.string().min(1).max(4000),
   conversationId: z.string().uuid().optional().nullable(),
   documentId: z.string().uuid().optional().nullable(),
-  imageBase64: z.string().optional().nullable(),
-  imageMimeType: z.string().optional().nullable(),
+  imageBase64: z.string().max(20_000_000).optional().nullable(),
+  imageMimeType: z.string().regex(IMAGE_MIME_RE).optional().nullable(),
 });
 
 function buildUserContent(message: string, imageBase64?: string | null, mime?: string | null) {
