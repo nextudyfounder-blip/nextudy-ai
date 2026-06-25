@@ -13,7 +13,10 @@ export function Navbar() {
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border/60 animate-fade-in">
       <nav className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
         <Link to="/" className="flex items-center gap-2 font-display font-bold text-lg group">
-          <img src={logo} alt="Nextudy" className="h-9 w-auto transition-transform duration-200 group-hover:scale-105" />
+          <span className="h-9 w-9 rounded-xl overflow-hidden bg-gradient-accent shadow-glow flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+            <img src={logo} alt="Nextudy" className="h-9 w-9 object-cover" />
+          </span>
+          <span>Nextudy</span>
         </Link>
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
           {!isLanding && (
