@@ -117,7 +117,7 @@ function ChatPage() {
       const lastShown = localStorage.getItem(REMINDER_KEY);
       if (lastShown === today) return;
       const { data: prof } = await supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle();
-      if ((prof?.plan ?? "free") === "free") {
+      if (false && (prof?.plan ?? "free") === "free") { // TEMP PREVIEW OVERRIDE
         setTimeout(() => {
           toast("✨ Unlock unlimited AI with Nextudy Pro", {
             description: "Free plan limited to 20 questions/day. Upgrade for unlimited chats & uploads.",
