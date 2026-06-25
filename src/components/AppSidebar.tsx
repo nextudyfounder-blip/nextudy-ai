@@ -27,7 +27,7 @@ const items: Item[] = [
   { title: "Pomodoro Timer", url: "/pomodoro", icon: Timer, emoji: "⏱️", soon: true },
   { title: "What's New", url: "/whats-new", icon: Sparkle, emoji: "🆕" },
   { title: "Feedback", url: "/feedback", icon: MessageSquare, emoji: "💬" },
-  { title: "Settings", url: "/settings", icon: Settings, emoji: "⚙️", soon: true },
+  { title: "Settings", url: "/settings", icon: Settings, emoji: "⚙️" },
 ];
 
 export function AppSidebar() {
@@ -84,7 +84,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <Link to={guest ? "/chat" : "/dashboard"} className="flex items-center gap-2 px-2 py-2 font-display font-bold">
-          <span className="h-8 w-8 rounded-lg bg-gradient-accent shadow-glow flex items-center justify-center shrink-0">
+          <span className="h-8 w-8 rounded-xl overflow-hidden bg-gradient-accent shadow-glow flex items-center justify-center shrink-0">
             <Sparkles className="h-4 w-4 text-white" />
           </span>
           {!collapsed && <span>Nextudy</span>}
