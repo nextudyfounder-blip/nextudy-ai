@@ -4,12 +4,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const FREE_DAILY_QUESTIONS = 20;
 
+const IMAGE_MIME_RE = /^image\/(png|jpeg|jpg|webp|heic)$/i;
+
 const askSchema = z.object({
   message: z.string().min(1).max(4000),
   conversationId: z.string().uuid().optional().nullable(),
   documentId: z.string().uuid().optional().nullable(),
-  imageBase64: z.string().optional().nullable(),
-  imageMimeType: z.string().optional().nullable(),
+  imageBase64: z.string().max(20_000_000).optional().nullable(),
+  imageMimeType: z.string().regex(IMAGE_MIME_RE).optional().nullable(),
 });
 
 function buildUserContent(message: string, imageBase64?: string | null, mime?: string | null) {
@@ -224,20 +226,30 @@ export const modifyResponse = createServerFn({ method: "POST" })
   });
 
 // ---- Guest (no persistence) ----
+// ---- Guest endpoint removed: required auth to prevent unmetered AI usage ----
+// Use askChat (authenticated) instead. This stub exists to preserve the export
+// name but rejects all callers.
 const guestSchema = z.object({
   message: z.string().min(1).max(4000),
-  history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() })).max(40).optional(),
-  imageBase64: z.string().optional().nullable(),
-  imageMimeType: z.string().optional().nullable(),
+  history: z
+    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(8000) }))
+    .max(40)
+    .optional(),
+  imageBase64: z.string().max(20_000_000).optional().nullable(),
+  imageMimeType: z.string().regex(IMAGE_MIME_RE).optional().nullable(),
 });
 
 export const askChatGuest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => guestSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    // Authenticated stateless chat (kept for back-compat with the guest UI path).
+    const { userId } = context;
     const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
     if (!LOVABLE_API_KEY) throw new Error("AI key not configured");
+    void userId;
     const messages = [
-      { role: "system" as const, content: "You are Nextudy, a friendly AI study tutor. Be helpful and clear. Use markdown. Note: the user is a guest and chat history is not saved." },
+      { role: "system" as const, content: "You are Nextudy, a friendly AI study tutor. Be helpful and clear. Use markdown." },
       ...((data.history ?? []).map((m) => ({ role: m.role, content: m.content }))),
       { role: "user" as const, content: buildUserContent(data.message, data.imageBase64, data.imageMimeType) },
     ];

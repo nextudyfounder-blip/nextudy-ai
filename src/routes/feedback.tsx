@@ -35,12 +35,22 @@ function FeedbackPage() {
       toast.error("Please write a longer message");
       return;
     }
-    setBusy(true);
-    const from = email || user?.email || "";
     const msg = message.trim();
+    const from = user?.email || email || "";
+    if (!user) {
+      // Anonymous submissions are no longer stored server-side.
+      // Open the user's mail client so feedback still reaches the team.
+      openMailto(msg, from);
+      toast.message("Opened your email app", {
+        description: "Sign in to send feedback directly from Nextudy.",
+      });
+      setSent(true);
+      return;
+    }
+    setBusy(true);
     try {
       const { error } = await supabase.from("feedback").insert({
-        user_id: user?.id ?? null,
+        user_id: user.id,
         email: from || null,
         message: msg,
       });
@@ -51,10 +61,9 @@ function FeedbackPage() {
       toast.success("Thanks! Your feedback was sent.");
       openMailto(msg, from);
     } catch (err) {
-      // Fall back to direct email if DB insert fails
       openMailto(msg, from);
       toast.message("Opened your email app as a fallback", {
-        description: err instanceof Error ? err.message : "Saved locally — please send the email to deliver it.",
+        description: err instanceof Error ? err.message : "Please send the email to deliver it.",
       });
       setSent(true);
     } finally {
