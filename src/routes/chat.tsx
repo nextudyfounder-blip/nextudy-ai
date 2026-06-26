@@ -35,7 +35,9 @@ import {
   ThumbsUp, ThumbsDown, Copy, Share2, Wand2, ShieldCheck,
   MessageSquarePlus, MoreHorizontal, Pencil, Trash2, BookOpen,
   Code2, Brain, FileText, Search, Image as ImageIcon,
+  Pin, PinOff, Maximize2, Minimize2, Keyboard, ChevronDown, Zap,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/chat")({
@@ -79,6 +81,14 @@ function ChatPage() {
   const [listening, setListening] = useState(false);
   const [search, setSearch] = useState("");
   const [pendingImage, setPendingImage] = useState<{ b64: string; mime: string; name: string } | null>(null);
+  const [model, setModel] = useState<"flash" | "pro" | "thinking">("flash");
+  const [focusMode, setFocusMode] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [pinned, setPinned] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try { return new Set(JSON.parse(localStorage.getItem("nextudy-pinned-chats") || "[]")); } catch { return new Set(); }
+  });
+  const searchRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -350,6 +360,29 @@ function ChatPage() {
     }
   };
 
+  const togglePin = (id: string) => {
+    setPinned((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      localStorage.setItem("nextudy-pinned-chats", JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key.toLowerCase() === "k") { e.preventDefault(); searchRef.current?.focus(); }
+      else if (mod && e.key.toLowerCase() === "j") { e.preventDefault(); startNewChat(); }
+      else if (mod && e.key === ".") { e.preventDefault(); setFocusMode((v) => !v); }
+      else if (mod && e.key === "/") { e.preventDefault(); setShortcutsOpen(true); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const filteredConvs = useMemo(() => {
     if (!search.trim()) return conversations;
     const q = search.toLowerCase();
@@ -357,26 +390,29 @@ function ChatPage() {
   }, [conversations, search]);
 
   const grouped = useMemo(() => {
+    const pinnedList: Conv[] = [];
     const today: Conv[] = [];
     const week: Conv[] = [];
     const older: Conv[] = [];
     const now = Date.now();
     for (const c of filteredConvs) {
+      if (pinned.has(c.id)) { pinnedList.push(c); continue; }
       const age = (now - new Date(c.updated_at).getTime()) / 86_400_000;
       if (age < 1) today.push(c);
       else if (age < 7) week.push(c);
       else older.push(c);
     }
-    return { today, week, older };
-  }, [filteredConvs]);
+    return { pinned: pinnedList, today, week, older };
+  }, [filteredConvs, pinned]);
 
   return (
     <AppLayout title="">
       <div className="flex h-[calc(100vh-3.5rem)] bg-gradient-to-br from-background via-background to-primary/5">
         {/* Chat-history sidebar */}
+        {!focusMode && (
         <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card/40 backdrop-blur">
           <div className="p-3 border-b border-border space-y-2">
-            <Button onClick={startNewChat} variant="hero" className="w-full justify-start gap-2">
+            <Button onClick={startNewChat} variant="hero" className="w-full justify-start gap-2" title="New chat (Ctrl+J)">
               <MessageSquarePlus className="h-4 w-4" />
               New chat
             </Button>
@@ -384,9 +420,10 @@ function ChatPage() {
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                 <Input
+                  ref={searchRef}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search chats…"
+                  placeholder="Search chats… (Ctrl+K)"
                   className="h-8 pl-8 text-xs"
                 />
               </div>
@@ -404,22 +441,29 @@ function ChatPage() {
             ) : (
               <>
                 {[
+                  { label: "Pinned", items: grouped.pinned, icon: Pin },
                   { label: "Today", items: grouped.today },
                   { label: "Previous 7 days", items: grouped.week },
                   { label: "Older", items: grouped.older },
-                ].map(({ label, items }) => items.length > 0 && (
+                ].map(({ label, items, icon: Icon }) => items.length > 0 && (
                   <div key={label}>
-                    <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
+                    <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      {Icon && <Icon className="h-3 w-3" />}{label}
+                    </div>
                     {items.map((c) => (
                       <div key={c.id} className={`group flex items-center gap-1 rounded-lg px-2 py-1.5 hover:bg-accent/40 cursor-pointer ${convId === c.id ? "bg-accent/60" : ""}`}>
-                        <button onClick={() => openConv(c.id)} className="flex-1 text-left truncate">
-                          {c.title || "Untitled chat"}
+                        <button onClick={() => openConv(c.id)} className="flex-1 text-left truncate flex items-center gap-1.5">
+                          {pinned.has(c.id) && <Pin className="h-3 w-3 shrink-0 text-primary fill-primary" />}
+                          <span className="truncate">{c.title || "Untitled chat"}</span>
                         </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-background"><MoreHorizontal className="h-3.5 w-3.5" /></button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => togglePin(c.id)}>
+                              {pinned.has(c.id) ? <><PinOff className="h-3.5 w-3.5 mr-2" />Unpin</> : <><Pin className="h-3.5 w-3.5 mr-2" />Pin to top</>}
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleRename(c.id, c.title || "")}><Pencil className="h-3.5 w-3.5 mr-2" />Rename</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive"><Trash2 className="h-3.5 w-3.5 mr-2" />Delete</DropdownMenuItem>
                           </DropdownMenuContent>
@@ -438,11 +482,13 @@ function ChatPage() {
             )}
           </div>
           <div className="border-t border-border p-2 text-xs text-muted-foreground space-y-1">
-            <button onClick={() => navigate({ to: "/profile" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Settings</button>
+            <button onClick={() => setShortcutsOpen(true)} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40 flex items-center gap-2"><Keyboard className="h-3.5 w-3.5" />Keyboard shortcuts</button>
+            <button onClick={() => navigate({ to: "/settings" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Settings</button>
             <button onClick={() => navigate({ to: "/feedback" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Help & Feedback</button>
             <button onClick={() => navigate({ to: "/dashboard" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Activity</button>
           </div>
         </aside>
+        )}
 
         {/* Main chat */}
         <div className="flex-1 flex flex-col min-w-0 relative">
@@ -537,39 +583,56 @@ function ChatPage() {
             </div>
           </div>
 
+          {/* Focus mode toggle (floating, top-right of chat area) */}
+          <button
+            onClick={() => setFocusMode((v) => !v)}
+            title={focusMode ? "Exit focus mode (Ctrl+.)" : "Focus mode (Ctrl+.)"}
+            className="absolute top-3 right-3 z-20 p-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition"
+          >
+            {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </button>
+
           {/* Floating input capsule */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-8 pb-4 px-4">
             <div className="max-w-3xl mx-auto">
+              {/* Attachment preview row */}
               {(docName || pendingImage) && (
-                <div className="flex items-center gap-2 mb-2 text-xs bg-accent/20 border border-accent/40 rounded-full px-3 py-1.5 w-fit animate-fade-in mx-auto">
-                  {pendingImage ? <ImageIcon className="h-3 w-3" /> : <Paperclip className="h-3 w-3" />}
-                  <span className="truncate max-w-[200px]">{pendingImage?.name ?? docName}</span>
-                  <button onClick={() => { setDocId(null); setDocName(null); setPendingImage(null); }} className="hover:text-foreground"><X className="h-3 w-3" /></button>
+                <div className="flex items-center gap-2 mb-3 mx-auto w-fit animate-fade-in">
+                  {pendingImage ? (
+                    <div className="relative group">
+                      <img
+                        src={`data:${pendingImage.mime};base64,${pendingImage.b64}`}
+                        alt={pendingImage.name}
+                        className="h-20 w-20 object-cover rounded-xl border border-border shadow-sm"
+                      />
+                      <button
+                        onClick={() => setPendingImage(null)}
+                        className="absolute -top-1.5 -right-1.5 h-5 w-5 grid place-items-center rounded-full bg-foreground text-background shadow opacity-0 group-hover:opacity-100 transition"
+                        title="Remove"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                      <span className="absolute bottom-1 left-1 right-1 truncate text-[9px] text-white bg-black/60 rounded px-1 py-0.5">
+                        {pendingImage.name}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs bg-accent/20 border border-accent/40 rounded-full px-3 py-1.5">
+                      <Paperclip className="h-3 w-3" />
+                      <span className="truncate max-w-[200px]">{docName}</span>
+                      <button onClick={() => { setDocId(null); setDocName(null); }} className="hover:text-foreground"><X className="h-3 w-3" /></button>
+                    </div>
+                  )}
                 </div>
               )}
+
               <form
                 onSubmit={(e) => { e.preventDefault(); send(input); }}
-                className="flex items-end gap-1 rounded-3xl border border-border bg-card shadow-elegant px-3 py-2 focus-within:border-primary/40 focus-within:shadow-glow transition-all"
+                className="rounded-[28px] border border-border bg-card shadow-elegant px-2 py-2 focus-within:border-primary/40 focus-within:shadow-glow transition-all"
               >
                 <input ref={fileRef} type="file" accept={guest ? "image/*" : "application/pdf,image/*"} className="hidden" onChange={onFile} />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon" className="rounded-full shrink-0" disabled={busy} title="Attach">
-                      <Plus className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" side="top">
-                    <DropdownMenuItem onClick={() => fileRef.current?.click()}>
-                      <Paperclip className="h-3.5 w-3.5 mr-2" />
-                      {guest ? "Upload image" : "Upload PDF or image"}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem disabled className="opacity-60">
-                      <ImageIcon className="h-3.5 w-3.5 mr-2" />
-                      Image Generation
-                      <span className="ml-auto text-[10px] uppercase tracking-wider text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded">Soon</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+
+                {/* Textarea row */}
                 <textarea
                   ref={textareaRef}
                   value={input}
@@ -577,21 +640,86 @@ function ChatPage() {
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
                   placeholder="Ask Nextudy anything…"
                   rows={1}
-                  className="flex-1 bg-transparent resize-none outline-none px-2 py-2.5 text-sm min-h-[40px] max-h-[200px]"
+                  className="w-full bg-transparent resize-none outline-none px-3 py-2 text-sm min-h-[40px] max-h-[200px]"
                   disabled={busy}
                 />
-                <Button type="button" variant="ghost" size="icon" className={`rounded-full shrink-0 ${listening ? "text-red-500 animate-pulse" : ""}`} onClick={toggleMic} disabled={busy} title="Voice input">
-                  {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                </Button>
-                <Button
-                  type="submit"
-                  size="icon"
-                  className={`rounded-full shrink-0 transition-all ${input.trim() ? "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white scale-100" : "bg-muted text-muted-foreground scale-90"}`}
-                  disabled={busy || !input.trim()}
-                  title="Send"
-                >
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                </Button>
+
+                {/* Controls row: model left, mic + send right */}
+                <div className="flex items-center gap-1 px-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon" className="rounded-full shrink-0 h-9 w-9" disabled={busy} title="Attach">
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" side="top">
+                      <DropdownMenuItem onClick={() => fileRef.current?.click()}>
+                        <Paperclip className="h-3.5 w-3.5 mr-2" />
+                        {guest ? "Upload image" : "Upload PDF or image"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem disabled className="opacity-60">
+                        <ImageIcon className="h-3.5 w-3.5 mr-2" />
+                        Image Generation
+                        <span className="ml-auto text-[10px] uppercase tracking-wider text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded">Soon</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Model selector */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex items-center gap-1.5 px-3 h-9 rounded-full text-xs font-medium hover:bg-accent/40 transition text-foreground/80"
+                        title="Model"
+                      >
+                        <Zap className="h-3.5 w-3.5 text-primary" />
+                        {model === "flash" ? "Flash" : model === "pro" ? "Pro" : "Thinking"}
+                        <ChevronDown className="h-3 w-3 opacity-60" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" side="top" className="w-56">
+                      <DropdownMenuLabel>Choose model</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setModel("flash")}>
+                        <Zap className="h-3.5 w-3.5 mr-2 text-primary" />
+                        <div className="flex-1">
+                          <div className="text-sm">Flash</div>
+                          <div className="text-[10px] text-muted-foreground">Fastest, balanced quality</div>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setModel("pro")} className="opacity-60">
+                        <Sparkles className="h-3.5 w-3.5 mr-2" />
+                        <div className="flex-1">
+                          <div className="text-sm">Pro</div>
+                          <div className="text-[10px] text-muted-foreground">Deeper reasoning · Soon</div>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setModel("thinking")} className="opacity-60">
+                        <Brain className="h-3.5 w-3.5 mr-2" />
+                        <div className="flex-1">
+                          <div className="text-sm">Thinking</div>
+                          <div className="text-[10px] text-muted-foreground">Step-by-step · Soon</div>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <div className="flex-1" />
+
+                  <Button type="button" variant="ghost" size="icon" className={`rounded-full shrink-0 h-9 w-9 ${listening ? "text-red-500 animate-pulse" : ""}`} onClick={toggleMic} disabled={busy} title="Voice input">
+                    {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="icon"
+                    className={`rounded-full shrink-0 h-9 w-9 transition-all ${input.trim() ? "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white scale-100" : "bg-muted text-muted-foreground scale-90"}`}
+                    disabled={busy || !input.trim()}
+                    title="Send"
+                  >
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
               </form>
               <p className="text-[10px] text-muted-foreground text-center mt-2">
                 Nextudy can make mistakes. Double-check important facts.
@@ -600,6 +728,34 @@ function ChatPage() {
           </div>
         </div>
       </div>
+
+      {/* Keyboard shortcuts dialog */}
+      <Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Keyboard className="h-5 w-5" /> Keyboard shortcuts</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 text-sm">
+            {[
+              { keys: ["Ctrl", "K"], label: "Search chats" },
+              { keys: ["Ctrl", "J"], label: "New chat" },
+              { keys: ["Ctrl", "."], label: "Toggle focus mode" },
+              { keys: ["Ctrl", "/"], label: "Show this dialog" },
+              { keys: ["Enter"], label: "Send message" },
+              { keys: ["Shift", "Enter"], label: "New line" },
+            ].map((s) => (
+              <div key={s.label} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
+                <span className="text-muted-foreground">{s.label}</span>
+                <span className="flex gap-1">
+                  {s.keys.map((k) => (
+                    <kbd key={k} className="px-2 py-0.5 rounded bg-muted border border-border text-xs font-mono">{k}</kbd>
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

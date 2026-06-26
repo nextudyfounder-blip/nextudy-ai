@@ -81,13 +81,13 @@ export function AppSidebar() {
     : items;
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="offcanvas">
       <SidebarHeader>
-        <Link to={guest ? "/chat" : "/dashboard"} className="flex items-center gap-2 px-2 py-2 font-display font-bold">
-          <span className="h-8 w-8 rounded-xl overflow-hidden bg-gradient-accent shadow-glow flex items-center justify-center shrink-0">
-            <Sparkles className="h-4 w-4 text-white" />
+        <Link to={guest ? "/chat" : "/dashboard"} className="flex items-center gap-2.5 px-2 py-2 font-display font-bold">
+          <span className="h-9 w-9 rounded-xl overflow-hidden bg-gradient-accent shadow-glow grid place-items-center shrink-0">
+            <Sparkles className="h-[18px] w-[18px] text-white" />
           </span>
-          {!collapsed && <span>Nextudy</span>}
+          <span>Nextudy</span>
         </Link>
       </SidebarHeader>
 
