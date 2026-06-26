@@ -409,9 +409,10 @@ function ChatPage() {
     <AppLayout title="">
       <div className="flex h-[calc(100vh-3.5rem)] bg-gradient-to-br from-background via-background to-primary/5">
         {/* Chat-history sidebar */}
+        {!focusMode && (
         <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card/40 backdrop-blur">
           <div className="p-3 border-b border-border space-y-2">
-            <Button onClick={startNewChat} variant="hero" className="w-full justify-start gap-2">
+            <Button onClick={startNewChat} variant="hero" className="w-full justify-start gap-2" title="New chat (Ctrl+J)">
               <MessageSquarePlus className="h-4 w-4" />
               New chat
             </Button>
@@ -419,9 +420,10 @@ function ChatPage() {
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                 <Input
+                  ref={searchRef}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search chats…"
+                  placeholder="Search chats… (Ctrl+K)"
                   className="h-8 pl-8 text-xs"
                 />
               </div>
@@ -439,22 +441,29 @@ function ChatPage() {
             ) : (
               <>
                 {[
+                  { label: "Pinned", items: grouped.pinned, icon: Pin },
                   { label: "Today", items: grouped.today },
                   { label: "Previous 7 days", items: grouped.week },
                   { label: "Older", items: grouped.older },
-                ].map(({ label, items }) => items.length > 0 && (
+                ].map(({ label, items, icon: Icon }) => items.length > 0 && (
                   <div key={label}>
-                    <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
+                    <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      {Icon && <Icon className="h-3 w-3" />}{label}
+                    </div>
                     {items.map((c) => (
                       <div key={c.id} className={`group flex items-center gap-1 rounded-lg px-2 py-1.5 hover:bg-accent/40 cursor-pointer ${convId === c.id ? "bg-accent/60" : ""}`}>
-                        <button onClick={() => openConv(c.id)} className="flex-1 text-left truncate">
-                          {c.title || "Untitled chat"}
+                        <button onClick={() => openConv(c.id)} className="flex-1 text-left truncate flex items-center gap-1.5">
+                          {pinned.has(c.id) && <Pin className="h-3 w-3 shrink-0 text-primary fill-primary" />}
+                          <span className="truncate">{c.title || "Untitled chat"}</span>
                         </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-background"><MoreHorizontal className="h-3.5 w-3.5" /></button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => togglePin(c.id)}>
+                              {pinned.has(c.id) ? <><PinOff className="h-3.5 w-3.5 mr-2" />Unpin</> : <><Pin className="h-3.5 w-3.5 mr-2" />Pin to top</>}
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleRename(c.id, c.title || "")}><Pencil className="h-3.5 w-3.5 mr-2" />Rename</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive"><Trash2 className="h-3.5 w-3.5 mr-2" />Delete</DropdownMenuItem>
                           </DropdownMenuContent>
@@ -473,11 +482,13 @@ function ChatPage() {
             )}
           </div>
           <div className="border-t border-border p-2 text-xs text-muted-foreground space-y-1">
-            <button onClick={() => navigate({ to: "/profile" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Settings</button>
+            <button onClick={() => setShortcutsOpen(true)} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40 flex items-center gap-2"><Keyboard className="h-3.5 w-3.5" />Keyboard shortcuts</button>
+            <button onClick={() => navigate({ to: "/settings" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Settings</button>
             <button onClick={() => navigate({ to: "/feedback" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Help & Feedback</button>
             <button onClick={() => navigate({ to: "/dashboard" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Activity</button>
           </div>
         </aside>
+        )}
 
         {/* Main chat */}
         <div className="flex-1 flex flex-col min-w-0 relative">
