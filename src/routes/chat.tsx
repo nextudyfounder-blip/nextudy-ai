@@ -35,7 +35,9 @@ import {
   ThumbsUp, ThumbsDown, Copy, Share2, Wand2, ShieldCheck,
   MessageSquarePlus, MoreHorizontal, Pencil, Trash2, BookOpen,
   Code2, Brain, FileText, Search, Image as ImageIcon,
+  Pin, PinOff, Maximize2, Minimize2, Keyboard, ChevronDown, Zap,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/chat")({
