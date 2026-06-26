@@ -583,39 +583,56 @@ function ChatPage() {
             </div>
           </div>
 
+          {/* Focus mode toggle (floating, top-right of chat area) */}
+          <button
+            onClick={() => setFocusMode((v) => !v)}
+            title={focusMode ? "Exit focus mode (Ctrl+.)" : "Focus mode (Ctrl+.)"}
+            className="absolute top-3 right-3 z-20 p-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition"
+          >
+            {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </button>
+
           {/* Floating input capsule */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-8 pb-4 px-4">
             <div className="max-w-3xl mx-auto">
+              {/* Attachment preview row */}
               {(docName || pendingImage) && (
-                <div className="flex items-center gap-2 mb-2 text-xs bg-accent/20 border border-accent/40 rounded-full px-3 py-1.5 w-fit animate-fade-in mx-auto">
-                  {pendingImage ? <ImageIcon className="h-3 w-3" /> : <Paperclip className="h-3 w-3" />}
-                  <span className="truncate max-w-[200px]">{pendingImage?.name ?? docName}</span>
-                  <button onClick={() => { setDocId(null); setDocName(null); setPendingImage(null); }} className="hover:text-foreground"><X className="h-3 w-3" /></button>
+                <div className="flex items-center gap-2 mb-3 mx-auto w-fit animate-fade-in">
+                  {pendingImage ? (
+                    <div className="relative group">
+                      <img
+                        src={`data:${pendingImage.mime};base64,${pendingImage.b64}`}
+                        alt={pendingImage.name}
+                        className="h-20 w-20 object-cover rounded-xl border border-border shadow-sm"
+                      />
+                      <button
+                        onClick={() => setPendingImage(null)}
+                        className="absolute -top-1.5 -right-1.5 h-5 w-5 grid place-items-center rounded-full bg-foreground text-background shadow opacity-0 group-hover:opacity-100 transition"
+                        title="Remove"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                      <span className="absolute bottom-1 left-1 right-1 truncate text-[9px] text-white bg-black/60 rounded px-1 py-0.5">
+                        {pendingImage.name}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs bg-accent/20 border border-accent/40 rounded-full px-3 py-1.5">
+                      <Paperclip className="h-3 w-3" />
+                      <span className="truncate max-w-[200px]">{docName}</span>
+                      <button onClick={() => { setDocId(null); setDocName(null); }} className="hover:text-foreground"><X className="h-3 w-3" /></button>
+                    </div>
+                  )}
                 </div>
               )}
+
               <form
                 onSubmit={(e) => { e.preventDefault(); send(input); }}
-                className="flex items-end gap-1 rounded-3xl border border-border bg-card shadow-elegant px-3 py-2 focus-within:border-primary/40 focus-within:shadow-glow transition-all"
+                className="rounded-[28px] border border-border bg-card shadow-elegant px-2 py-2 focus-within:border-primary/40 focus-within:shadow-glow transition-all"
               >
                 <input ref={fileRef} type="file" accept={guest ? "image/*" : "application/pdf,image/*"} className="hidden" onChange={onFile} />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon" className="rounded-full shrink-0" disabled={busy} title="Attach">
-                      <Plus className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" side="top">
-                    <DropdownMenuItem onClick={() => fileRef.current?.click()}>
-                      <Paperclip className="h-3.5 w-3.5 mr-2" />
-                      {guest ? "Upload image" : "Upload PDF or image"}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem disabled className="opacity-60">
-                      <ImageIcon className="h-3.5 w-3.5 mr-2" />
-                      Image Generation
-                      <span className="ml-auto text-[10px] uppercase tracking-wider text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded">Soon</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+
+                {/* Textarea row */}
                 <textarea
                   ref={textareaRef}
                   value={input}
@@ -623,21 +640,86 @@ function ChatPage() {
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
                   placeholder="Ask Nextudy anything…"
                   rows={1}
-                  className="flex-1 bg-transparent resize-none outline-none px-2 py-2.5 text-sm min-h-[40px] max-h-[200px]"
+                  className="w-full bg-transparent resize-none outline-none px-3 py-2 text-sm min-h-[40px] max-h-[200px]"
                   disabled={busy}
                 />
-                <Button type="button" variant="ghost" size="icon" className={`rounded-full shrink-0 ${listening ? "text-red-500 animate-pulse" : ""}`} onClick={toggleMic} disabled={busy} title="Voice input">
-                  {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                </Button>
-                <Button
-                  type="submit"
-                  size="icon"
-                  className={`rounded-full shrink-0 transition-all ${input.trim() ? "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white scale-100" : "bg-muted text-muted-foreground scale-90"}`}
-                  disabled={busy || !input.trim()}
-                  title="Send"
-                >
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                </Button>
+
+                {/* Controls row: model left, mic + send right */}
+                <div className="flex items-center gap-1 px-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon" className="rounded-full shrink-0 h-9 w-9" disabled={busy} title="Attach">
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" side="top">
+                      <DropdownMenuItem onClick={() => fileRef.current?.click()}>
+                        <Paperclip className="h-3.5 w-3.5 mr-2" />
+                        {guest ? "Upload image" : "Upload PDF or image"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem disabled className="opacity-60">
+                        <ImageIcon className="h-3.5 w-3.5 mr-2" />
+                        Image Generation
+                        <span className="ml-auto text-[10px] uppercase tracking-wider text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded">Soon</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Model selector */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex items-center gap-1.5 px-3 h-9 rounded-full text-xs font-medium hover:bg-accent/40 transition text-foreground/80"
+                        title="Model"
+                      >
+                        <Zap className="h-3.5 w-3.5 text-primary" />
+                        {model === "flash" ? "Flash" : model === "pro" ? "Pro" : "Thinking"}
+                        <ChevronDown className="h-3 w-3 opacity-60" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" side="top" className="w-56">
+                      <DropdownMenuLabel>Choose model</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setModel("flash")}>
+                        <Zap className="h-3.5 w-3.5 mr-2 text-primary" />
+                        <div className="flex-1">
+                          <div className="text-sm">Flash</div>
+                          <div className="text-[10px] text-muted-foreground">Fastest, balanced quality</div>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setModel("pro")} className="opacity-60">
+                        <Sparkles className="h-3.5 w-3.5 mr-2" />
+                        <div className="flex-1">
+                          <div className="text-sm">Pro</div>
+                          <div className="text-[10px] text-muted-foreground">Deeper reasoning · Soon</div>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setModel("thinking")} className="opacity-60">
+                        <Brain className="h-3.5 w-3.5 mr-2" />
+                        <div className="flex-1">
+                          <div className="text-sm">Thinking</div>
+                          <div className="text-[10px] text-muted-foreground">Step-by-step · Soon</div>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <div className="flex-1" />
+
+                  <Button type="button" variant="ghost" size="icon" className={`rounded-full shrink-0 h-9 w-9 ${listening ? "text-red-500 animate-pulse" : ""}`} onClick={toggleMic} disabled={busy} title="Voice input">
+                    {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="icon"
+                    className={`rounded-full shrink-0 h-9 w-9 transition-all ${input.trim() ? "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white scale-100" : "bg-muted text-muted-foreground scale-90"}`}
+                    disabled={busy || !input.trim()}
+                    title="Send"
+                  >
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
               </form>
               <p className="text-[10px] text-muted-foreground text-center mt-2">
                 Nextudy can make mistakes. Double-check important facts.
@@ -646,6 +728,34 @@ function ChatPage() {
           </div>
         </div>
       </div>
+
+      {/* Keyboard shortcuts dialog */}
+      <Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Keyboard className="h-5 w-5" /> Keyboard shortcuts</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 text-sm">
+            {[
+              { keys: ["Ctrl", "K"], label: "Search chats" },
+              { keys: ["Ctrl", "J"], label: "New chat" },
+              { keys: ["Ctrl", "."], label: "Toggle focus mode" },
+              { keys: ["Ctrl", "/"], label: "Show this dialog" },
+              { keys: ["Enter"], label: "Send message" },
+              { keys: ["Shift", "Enter"], label: "New line" },
+            ].map((s) => (
+              <div key={s.label} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
+                <span className="text-muted-foreground">{s.label}</span>
+                <span className="flex gap-1">
+                  {s.keys.map((k) => (
+                    <kbd key={k} className="px-2 py-0.5 rounded bg-muted border border-border text-xs font-mono">{k}</kbd>
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
