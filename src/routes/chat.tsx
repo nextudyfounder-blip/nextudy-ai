@@ -79,6 +79,14 @@ function ChatPage() {
   const [listening, setListening] = useState(false);
   const [search, setSearch] = useState("");
   const [pendingImage, setPendingImage] = useState<{ b64: string; mime: string; name: string } | null>(null);
+  const [model, setModel] = useState<"flash" | "pro" | "thinking">("flash");
+  const [focusMode, setFocusMode] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [pinned, setPinned] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try { return new Set(JSON.parse(localStorage.getItem("nextudy-pinned-chats") || "[]")); } catch { return new Set(); }
+  });
+  const searchRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
