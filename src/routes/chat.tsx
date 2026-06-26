@@ -360,6 +360,29 @@ function ChatPage() {
     }
   };
 
+  const togglePin = (id: string) => {
+    setPinned((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      localStorage.setItem("nextudy-pinned-chats", JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key.toLowerCase() === "k") { e.preventDefault(); searchRef.current?.focus(); }
+      else if (mod && e.key.toLowerCase() === "j") { e.preventDefault(); startNewChat(); }
+      else if (mod && e.key === ".") { e.preventDefault(); setFocusMode((v) => !v); }
+      else if (mod && e.key === "/") { e.preventDefault(); setShortcutsOpen(true); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const filteredConvs = useMemo(() => {
     if (!search.trim()) return conversations;
     const q = search.toLowerCase();
@@ -367,18 +390,20 @@ function ChatPage() {
   }, [conversations, search]);
 
   const grouped = useMemo(() => {
+    const pinnedList: Conv[] = [];
     const today: Conv[] = [];
     const week: Conv[] = [];
     const older: Conv[] = [];
     const now = Date.now();
     for (const c of filteredConvs) {
+      if (pinned.has(c.id)) { pinnedList.push(c); continue; }
       const age = (now - new Date(c.updated_at).getTime()) / 86_400_000;
       if (age < 1) today.push(c);
       else if (age < 7) week.push(c);
       else older.push(c);
     }
-    return { today, week, older };
-  }, [filteredConvs]);
+    return { pinned: pinnedList, today, week, older };
+  }, [filteredConvs, pinned]);
 
   return (
     <AppLayout title="">
