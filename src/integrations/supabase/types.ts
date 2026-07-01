@@ -181,6 +181,48 @@ export type Database = {
         }
         Relationships: []
       }
+      team_invitations: {
+        Row: {
+          accepted_at: string | null
+          billing_strategy: string
+          created_at: string
+          id: string
+          invitee_email: string
+          owner_id: string
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_checkout_url: string | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          billing_strategy: string
+          created_at?: string
+          id?: string
+          invitee_email: string
+          owner_id: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_checkout_url?: string | null
+          tier: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          billing_strategy?: string
+          created_at?: string
+          id?: string
+          invitee_email?: string
+          owner_id?: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_checkout_url?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       usage_daily: {
         Row: {
           day: string

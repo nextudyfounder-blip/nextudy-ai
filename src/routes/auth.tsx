@@ -42,6 +42,12 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        // Fire-and-forget welcome onboarding (audience + welcome email).
+        fetch("/api/public/welcome-onboarding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, display_name: name || null }),
+        }).catch(() => {});
         toast.success("Account created! You're signed in.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });

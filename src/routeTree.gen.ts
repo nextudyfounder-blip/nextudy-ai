@@ -17,6 +17,8 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicWelcomeOnboardingRouteImport } from './routes/api/public/welcome-onboarding'
+import { Route as ApiPublicInviteMemberRouteImport } from './routes/api/public/invite-member'
 
 const WhatsNewRoute = WhatsNewRouteImport.update({
   id: '/whats-new',
@@ -58,6 +60,17 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWelcomeOnboardingRoute =
+  ApiPublicWelcomeOnboardingRouteImport.update({
+    id: '/api/public/welcome-onboarding',
+    path: '/api/public/welcome-onboarding',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicInviteMemberRoute = ApiPublicInviteMemberRouteImport.update({
+  id: '/api/public/invite-member',
+  path: '/api/public/invite-member',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +81,8 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/whats-new': typeof WhatsNewRoute
+  '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
+  '/api/public/welcome-onboarding': typeof ApiPublicWelcomeOnboardingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +93,8 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/whats-new': typeof WhatsNewRoute
+  '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
+  '/api/public/welcome-onboarding': typeof ApiPublicWelcomeOnboardingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +106,8 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/whats-new': typeof WhatsNewRoute
+  '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
+  '/api/public/welcome-onboarding': typeof ApiPublicWelcomeOnboardingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +120,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/whats-new'
+    | '/api/public/invite-member'
+    | '/api/public/welcome-onboarding'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +132,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/whats-new'
+    | '/api/public/invite-member'
+    | '/api/public/welcome-onboarding'
   id:
     | '__root__'
     | '/'
@@ -121,6 +144,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/whats-new'
+    | '/api/public/invite-member'
+    | '/api/public/welcome-onboarding'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +157,8 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
   WhatsNewRoute: typeof WhatsNewRoute
+  ApiPublicInviteMemberRoute: typeof ApiPublicInviteMemberRoute
+  ApiPublicWelcomeOnboardingRoute: typeof ApiPublicWelcomeOnboardingRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +219,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/welcome-onboarding': {
+      id: '/api/public/welcome-onboarding'
+      path: '/api/public/welcome-onboarding'
+      fullPath: '/api/public/welcome-onboarding'
+      preLoaderRoute: typeof ApiPublicWelcomeOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/invite-member': {
+      id: '/api/public/invite-member'
+      path: '/api/public/invite-member'
+      fullPath: '/api/public/invite-member'
+      preLoaderRoute: typeof ApiPublicInviteMemberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,17 +245,9 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
   WhatsNewRoute: WhatsNewRoute,
+  ApiPublicInviteMemberRoute: ApiPublicInviteMemberRoute,
+  ApiPublicWelcomeOnboardingRoute: ApiPublicWelcomeOnboardingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
