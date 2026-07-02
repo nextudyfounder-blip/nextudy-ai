@@ -503,6 +503,22 @@ function ChatPage() {
         </aside>
         )}
 
+        {/* Context panel (documents) */}
+        {!focusMode && contextOpen && !guest && user && (
+          <ContextPanel
+            userId={user.id}
+            activeDocId={docId}
+            onAttach={(doc) => {
+              if (!doc) { setDocId(null); setDocName(null); return; }
+              setDocId(doc.id);
+              setDocName(doc.name);
+              toast.success(`📎 ${doc.name} attached as context`);
+            }}
+            onUploadClick={() => fileRef.current?.click()}
+            onCollapse={() => setContextOpen(false)}
+          />
+        )}
+
         {/* Main chat */}
         <div className="flex-1 flex flex-col min-w-0 relative">
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-6 pb-40">
