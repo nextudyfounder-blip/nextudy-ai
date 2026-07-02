@@ -612,14 +612,25 @@ function ChatPage() {
             </div>
           </div>
 
-          {/* Focus mode toggle (floating, top-right of chat area) */}
-          <button
-            onClick={() => setFocusMode((v) => !v)}
-            title={focusMode ? "Exit focus mode (Ctrl+.)" : "Focus mode (Ctrl+.)"}
-            className="absolute top-3 right-3 z-20 p-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition"
-          >
-            {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          </button>
+          {/* Top-right floating controls */}
+          <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+            {!focusMode && !contextOpen && user && !guest && (
+              <button
+                onClick={() => setContextOpen(true)}
+                title="Show context panel"
+                className="hidden lg:inline-flex p-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition"
+              >
+                <PanelLeftOpen className="h-4 w-4" />
+              </button>
+            )}
+            <button
+              onClick={() => setFocusMode((v) => !v)}
+              title={focusMode ? "Exit focus mode (Ctrl+.)" : "Focus mode (Ctrl+.)"}
+              className="p-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition"
+            >
+              {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </button>
+          </div>
 
           {/* Floating input capsule */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-8 pb-4 px-4">
