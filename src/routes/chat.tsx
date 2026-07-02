@@ -30,15 +30,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Markdown } from "@/components/chat/Markdown";
+import { ContextPanel } from "@/components/chat/ContextPanel";
 import {
   Send, Plus, Loader2, Sparkles, Paperclip, X, Mic, MicOff,
   ThumbsUp, ThumbsDown, Copy, Share2, Wand2, ShieldCheck,
   MessageSquarePlus, MoreHorizontal, Pencil, Trash2, BookOpen,
   Code2, Brain, FileText, Search, Image as ImageIcon,
   Pin, PinOff, Maximize2, Minimize2, Keyboard, ChevronDown, Zap,
+  PanelLeftOpen, LayoutTemplate, Settings2,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+
+const TEMPLATES = [
+  { title: "Summarize", prompt: "Summarize the attached document into concise bullet points, grouped by topic." },
+  { title: "Explain simpler", prompt: "Explain the last concept again, but simpler — like I'm 15." },
+  { title: "Quiz me", prompt: "Give me 5 multiple-choice questions from this material with answers hidden below." },
+  { title: "Flashcards", prompt: "Generate 10 Q&A flashcards from the material in a table." },
+  { title: "Compare & contrast", prompt: "Compare and contrast the two main ideas from this material in a table." },
+  { title: "Study plan", prompt: "Create a 7-day study plan for this material with daily goals." },
+];
 
 export const Route = createFileRoute("/chat")({
   component: ChatPage,
@@ -83,6 +94,8 @@ function ChatPage() {
   const [pendingImage, setPendingImage] = useState<{ b64: string; mime: string; name: string } | null>(null);
   const [model, setModel] = useState<"flash" | "pro" | "thinking">("flash");
   const [focusMode, setFocusMode] = useState(false);
+  const [contextOpen, setContextOpen] = useState(true);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [pinned, setPinned] = useState<Set<string>>(() => {
     if (typeof window === "undefined") return new Set();
@@ -490,6 +503,22 @@ function ChatPage() {
         </aside>
         )}
 
+        {/* Context panel (documents) */}
+        {!focusMode && contextOpen && !guest && user && (
+          <ContextPanel
+            userId={user.id}
+            activeDocId={docId}
+            onAttach={(doc) => {
+              if (!doc) { setDocId(null); setDocName(null); return; }
+              setDocId(doc.id);
+              setDocName(doc.name);
+              toast.success(`📎 ${doc.name} attached as context`);
+            }}
+            onUploadClick={() => fileRef.current?.click()}
+            onCollapse={() => setContextOpen(false)}
+          />
+        )}
+
         {/* Main chat */}
         <div className="flex-1 flex flex-col min-w-0 relative">
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-6 pb-40">
@@ -583,14 +612,25 @@ function ChatPage() {
             </div>
           </div>
 
-          {/* Focus mode toggle (floating, top-right of chat area) */}
-          <button
-            onClick={() => setFocusMode((v) => !v)}
-            title={focusMode ? "Exit focus mode (Ctrl+.)" : "Focus mode (Ctrl+.)"}
-            className="absolute top-3 right-3 z-20 p-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition"
-          >
-            {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          </button>
+          {/* Top-right floating controls */}
+          <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+            {!focusMode && !contextOpen && user && !guest && (
+              <button
+                onClick={() => setContextOpen(true)}
+                title="Show context panel"
+                className="hidden lg:inline-flex p-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition"
+              >
+                <PanelLeftOpen className="h-4 w-4" />
+              </button>
+            )}
+            <button
+              onClick={() => setFocusMode((v) => !v)}
+              title={focusMode ? "Exit focus mode (Ctrl+.)" : "Focus mode (Ctrl+.)"}
+              className="p-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition"
+            >
+              {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </button>
+          </div>
 
           {/* Floating input capsule */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-8 pb-4 px-4">
@@ -705,7 +745,27 @@ function ChatPage() {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
+                  <Button
+                    type="button" variant="ghost" size="icon"
+                    className="rounded-full shrink-0 h-9 w-9"
+                    onClick={() => setTemplatesOpen(true)}
+                    disabled={busy}
+                    title="Prompt templates"
+                  >
+                    <LayoutTemplate className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button" variant="ghost" size="icon"
+                    className="rounded-full shrink-0 h-9 w-9"
+                    onClick={() => navigate({ to: "/settings" })}
+                    disabled={busy}
+                    title="Chat settings"
+                  >
+                    <Settings2 className="h-4 w-4" />
+                  </Button>
+
                   <div className="flex-1" />
+
 
                   <Button type="button" variant="ghost" size="icon" className={`rounded-full shrink-0 h-9 w-9 ${listening ? "text-red-500 animate-pulse" : ""}`} onClick={toggleMic} disabled={busy} title="Voice input">
                     {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
@@ -752,6 +812,30 @@ function ChatPage() {
                   ))}
                 </span>
               </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Prompt templates dialog */}
+      <Dialog open={templatesOpen} onOpenChange={setTemplatesOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LayoutTemplate className="h-5 w-5" /> Prompt templates
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid sm:grid-cols-2 gap-2 mt-2">
+            {TEMPLATES.map((t, i) => (
+              <button
+                key={t.title}
+                onClick={() => { setInput(t.prompt); setTemplatesOpen(false); textareaRef.current?.focus(); }}
+                style={{ animationDelay: `${i * 40}ms` }}
+                className="text-left rounded-xl border border-border bg-card/60 p-3 hover:border-primary/40 hover:shadow-elegant transition-all animate-fade-in"
+              >
+                <div className="text-sm font-medium">{t.title}</div>
+                <div className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{t.prompt}</div>
+              </button>
             ))}
           </div>
         </DialogContent>
