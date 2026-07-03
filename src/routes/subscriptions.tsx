@@ -12,9 +12,6 @@ import {
 import { PenLoader } from "@/components/PenLoader";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-} from "lucide-react";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/subscriptions")({
   component: SubscriptionsPage,
