@@ -21,6 +21,7 @@ const items: Item[] = [
   { title: "Upload & Summarize", url: "/dashboard", icon: FileText, emoji: "📄" },
   { title: "AI Chatbot", url: "/chat", icon: Bot, emoji: "🤖" },
   { title: "Study Crews", url: "/crews", icon: Users, emoji: "👥" },
+  { title: "Subscriptions", url: "/subscriptions", icon: CreditCard, emoji: "💳" },
   { title: "Profile", url: "/profile", icon: UserIcon, emoji: "👤" },
   { title: "Flashcards", url: "/flashcards", icon: Layers, emoji: "🃏", soon: true },
   { title: "Mindmap", url: "/mindmap", icon: Network, emoji: "🗺️", soon: true },
