@@ -20,6 +20,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicWelcomeOnboardingRouteImport } from './routes/api/public/welcome-onboarding'
 import { Route as ApiPublicInviteMemberRouteImport } from './routes/api/public/invite-member'
+import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 
 const WhatsNewRoute = WhatsNewRouteImport.update({
   id: '/whats-new',
@@ -77,6 +78,11 @@ const ApiPublicInviteMemberRoute = ApiPublicInviteMemberRouteImport.update({
   path: '/api/public/invite-member',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCreateCheckoutRoute = ApiPublicCreateCheckoutRouteImport.update({
+  id: '/api/public/create-checkout',
+  path: '/api/public/create-checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/whats-new': typeof WhatsNewRoute
+  '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
   '/api/public/welcome-onboarding': typeof ApiPublicWelcomeOnboardingRoute
 }
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/whats-new': typeof WhatsNewRoute
+  '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
   '/api/public/welcome-onboarding': typeof ApiPublicWelcomeOnboardingRoute
 }
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/whats-new': typeof WhatsNewRoute
+  '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
   '/api/public/welcome-onboarding': typeof ApiPublicWelcomeOnboardingRoute
 }
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/whats-new'
+    | '/api/public/create-checkout'
     | '/api/public/invite-member'
     | '/api/public/welcome-onboarding'
   fileRoutesByTo: FileRoutesByTo
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/whats-new'
+    | '/api/public/create-checkout'
     | '/api/public/invite-member'
     | '/api/public/welcome-onboarding'
   id:
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/whats-new'
+    | '/api/public/create-checkout'
     | '/api/public/invite-member'
     | '/api/public/welcome-onboarding'
   fileRoutesById: FileRoutesById
@@ -170,6 +182,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
   WhatsNewRoute: typeof WhatsNewRoute
+  ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
   ApiPublicInviteMemberRoute: typeof ApiPublicInviteMemberRoute
   ApiPublicWelcomeOnboardingRoute: typeof ApiPublicWelcomeOnboardingRoute
 }
@@ -253,6 +266,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicInviteMemberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/create-checkout': {
+      id: '/api/public/create-checkout'
+      path: '/api/public/create-checkout'
+      fullPath: '/api/public/create-checkout'
+      preLoaderRoute: typeof ApiPublicCreateCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -266,6 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
   WhatsNewRoute: WhatsNewRoute,
+  ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
   ApiPublicInviteMemberRoute: ApiPublicInviteMemberRoute,
   ApiPublicWelcomeOnboardingRoute: ApiPublicWelcomeOnboardingRoute,
 }
