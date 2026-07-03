@@ -278,7 +278,7 @@ function PlanCard({
           variant={highlight ? "hero" : "default"}
           className="w-full"
         >
-          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Redirecting…</> : cta}
+          {loading ? <><PenLoader size="sm" inline label="Securing checkout…" /></> : cta}
         </Button>
       )}
     </Card>
