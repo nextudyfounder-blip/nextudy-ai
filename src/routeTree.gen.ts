@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsNewRouteImport } from './routes/whats-new'
+import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as FeedbackRouteImport } from './routes/feedback'
@@ -20,10 +21,16 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicWelcomeOnboardingRouteImport } from './routes/api/public/welcome-onboarding'
 import { Route as ApiPublicInviteMemberRouteImport } from './routes/api/public/invite-member'
+import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 
 const WhatsNewRoute = WhatsNewRouteImport.update({
   id: '/whats-new',
   path: '/whats-new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubscriptionsRoute = SubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -77,6 +84,11 @@ const ApiPublicInviteMemberRoute = ApiPublicInviteMemberRouteImport.update({
   path: '/api/public/invite-member',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCreateCheckoutRoute = ApiPublicCreateCheckoutRouteImport.update({
+  id: '/api/public/create-checkout',
+  path: '/api/public/create-checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -87,7 +99,9 @@ export interface FileRoutesByFullPath {
   '/feedback': typeof FeedbackRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/subscriptions': typeof SubscriptionsRoute
   '/whats-new': typeof WhatsNewRoute
+  '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
   '/api/public/welcome-onboarding': typeof ApiPublicWelcomeOnboardingRoute
 }
@@ -100,7 +114,9 @@ export interface FileRoutesByTo {
   '/feedback': typeof FeedbackRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/subscriptions': typeof SubscriptionsRoute
   '/whats-new': typeof WhatsNewRoute
+  '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
   '/api/public/welcome-onboarding': typeof ApiPublicWelcomeOnboardingRoute
 }
@@ -114,7 +130,9 @@ export interface FileRoutesById {
   '/feedback': typeof FeedbackRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/subscriptions': typeof SubscriptionsRoute
   '/whats-new': typeof WhatsNewRoute
+  '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
   '/api/public/welcome-onboarding': typeof ApiPublicWelcomeOnboardingRoute
 }
@@ -129,7 +147,9 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/profile'
     | '/settings'
+    | '/subscriptions'
     | '/whats-new'
+    | '/api/public/create-checkout'
     | '/api/public/invite-member'
     | '/api/public/welcome-onboarding'
   fileRoutesByTo: FileRoutesByTo
@@ -142,7 +162,9 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/profile'
     | '/settings'
+    | '/subscriptions'
     | '/whats-new'
+    | '/api/public/create-checkout'
     | '/api/public/invite-member'
     | '/api/public/welcome-onboarding'
   id:
@@ -155,7 +177,9 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/profile'
     | '/settings'
+    | '/subscriptions'
     | '/whats-new'
+    | '/api/public/create-checkout'
     | '/api/public/invite-member'
     | '/api/public/welcome-onboarding'
   fileRoutesById: FileRoutesById
@@ -169,7 +193,9 @@ export interface RootRouteChildren {
   FeedbackRoute: typeof FeedbackRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
+  SubscriptionsRoute: typeof SubscriptionsRoute
   WhatsNewRoute: typeof WhatsNewRoute
+  ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
   ApiPublicInviteMemberRoute: typeof ApiPublicInviteMemberRoute
   ApiPublicWelcomeOnboardingRoute: typeof ApiPublicWelcomeOnboardingRoute
 }
@@ -181,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/whats-new'
       fullPath: '/whats-new'
       preLoaderRoute: typeof WhatsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/subscriptions': {
+      id: '/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/subscriptions'
+      preLoaderRoute: typeof SubscriptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -253,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicInviteMemberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/create-checkout': {
+      id: '/api/public/create-checkout'
+      path: '/api/public/create-checkout'
+      fullPath: '/api/public/create-checkout'
+      preLoaderRoute: typeof ApiPublicCreateCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -265,7 +305,9 @@ const rootRouteChildren: RootRouteChildren = {
   FeedbackRoute: FeedbackRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
+  SubscriptionsRoute: SubscriptionsRoute,
   WhatsNewRoute: WhatsNewRoute,
+  ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
   ApiPublicInviteMemberRoute: ApiPublicInviteMemberRoute,
   ApiPublicWelcomeOnboardingRoute: ApiPublicWelcomeOnboardingRoute,
 }

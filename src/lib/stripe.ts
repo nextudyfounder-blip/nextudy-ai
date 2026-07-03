@@ -55,25 +55,32 @@ export interface CheckoutSession {
 
 /**
  * Create a subscription Checkout Session using dynamic price_data.
- * TEAMS = €16.00 / member / month, TURBO = €12.00 / member / month.
+ * PRO = €7 / month (individual), TEAMS = €16 / seat / month, TURBO = €12 / seat / month.
  */
-export async function createMemberCheckout(input: {
-  tier: "teams" | "turbo";
+export async function createSubscriptionCheckout(input: {
+  tier: "pro" | "teams" | "turbo";
+  seats?: number;
   customerEmail: string;
   successUrl: string;
   cancelUrl: string;
   metadata?: Record<string, string>;
 }): Promise<CheckoutSession> {
-  const priceCents = input.tier === "turbo" ? 1200 : 1600;
+  const priceCents =
+    input.tier === "pro" ? 700 : input.tier === "turbo" ? 1200 : 1600;
   const productName =
-    input.tier === "turbo" ? "Nextudy Turbo — Member seat" : "Nextudy Teams — Member seat";
+    input.tier === "pro"
+      ? "Nextudy Pro — Individual"
+      : input.tier === "turbo"
+        ? "Nextudy Turbo — Seat"
+        : "Nextudy Teams — Seat";
+  const quantity = input.tier === "pro" ? 1 : Math.max(1, input.seats ?? 1);
 
   return stripeRequest<CheckoutSession>("/checkout/sessions", {
     mode: "subscription",
     customer_email: input.customerEmail,
     success_url: input.successUrl,
     cancel_url: input.cancelUrl,
-    "line_items[0][quantity]": 1,
+    "line_items[0][quantity]": quantity,
     "line_items[0][price_data][currency]": "eur",
     "line_items[0][price_data][unit_amount]": priceCents,
     "line_items[0][price_data][recurring][interval]": "month",
@@ -84,4 +91,15 @@ export async function createMemberCheckout(input: {
         )
       : {}),
   });
+}
+
+/** Back-compat alias for the invite-member route (single seat). */
+export async function createMemberCheckout(input: {
+  tier: "teams" | "turbo";
+  customerEmail: string;
+  successUrl: string;
+  cancelUrl: string;
+  metadata?: Record<string, string>;
+}): Promise<CheckoutSession> {
+  return createSubscriptionCheckout({ ...input, seats: 1 });
 }

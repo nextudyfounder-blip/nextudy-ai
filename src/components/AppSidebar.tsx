@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Sparkles, FileText, Bot, Layers, Network, BarChart3, Timer, Sparkle, MessageSquare, Settings, LogOut, User as UserIcon, RefreshCw, ChevronUp, Users } from "lucide-react";
+import { Sparkles, FileText, Bot, Layers, Network, BarChart3, Timer, Sparkle, MessageSquare, Settings, LogOut, User as UserIcon, RefreshCw, ChevronUp, Users, CreditCard } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +21,7 @@ const items: Item[] = [
   { title: "Upload & Summarize", url: "/dashboard", icon: FileText, emoji: "📄" },
   { title: "AI Chatbot", url: "/chat", icon: Bot, emoji: "🤖" },
   { title: "Study Crews", url: "/crews", icon: Users, emoji: "👥" },
+  { title: "Subscriptions", url: "/subscriptions", icon: CreditCard, emoji: "💳" },
   { title: "Profile", url: "/profile", icon: UserIcon, emoji: "👤" },
   { title: "Flashcards", url: "/flashcards", icon: Layers, emoji: "🃏", soon: true },
   { title: "Mindmap", url: "/mindmap", icon: Network, emoji: "🗺️", soon: true },
