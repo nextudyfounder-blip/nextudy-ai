@@ -7,7 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Check, Sparkles, Zap, Users, Crown, Minus, Plus, Loader2, Infinity as InfinityIcon,
+  Check, Sparkles, Zap, Users, Crown, Minus, Plus, Infinity as InfinityIcon,
+} from "lucide-react";
+import { PenLoader } from "@/components/PenLoader";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
