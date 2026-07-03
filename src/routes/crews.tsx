@@ -15,6 +15,7 @@ import {
   Users, UserPlus, Mail, CheckCircle2, Clock, CreditCard, Crown,
   Loader2, Copy, Sparkles, Zap,
 } from "lucide-react";
+import { PenLoader } from "@/components/PenLoader";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -116,8 +117,8 @@ function CrewsPage() {
                 />
               )}
               {loading && (
-                <div className="p-4 text-xs text-muted-foreground flex items-center gap-2">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading crew…
+                <div className="p-6 flex justify-center">
+                  <PenLoader size="sm" inline label="Loading crew…" />
                 </div>
               )}
               {!loading && invites.length === 0 && (

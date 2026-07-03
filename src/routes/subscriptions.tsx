@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Check, Sparkles, Zap, Users, Crown, Minus, Plus, Loader2, Infinity as InfinityIcon,
+  Check, Sparkles, Zap, Users, Crown, Minus, Plus, Infinity as InfinityIcon,
 } from "lucide-react";
+import { PenLoader } from "@/components/PenLoader";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -234,7 +235,7 @@ function PlanCard({
 }) {
   return (
     <Card className={cn(
-      "relative p-6 flex flex-col gap-5 transition-all hover:shadow-lg hover:-translate-y-0.5",
+      "relative p-6 flex flex-col gap-5 hover-magnetic glass-panel",
       highlight && "border-accent/60 shadow-glow",
       current && "ring-2 ring-accent",
     )}>
@@ -278,7 +279,7 @@ function PlanCard({
           variant={highlight ? "hero" : "default"}
           className="w-full"
         >
-          {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Redirecting…</> : cta}
+          {loading ? <><PenLoader size="sm" inline label="Securing checkout…" /></> : cta}
         </Button>
       )}
     </Card>
