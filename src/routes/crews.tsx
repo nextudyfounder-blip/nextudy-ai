@@ -116,8 +116,8 @@ function CrewsPage() {
                 />
               )}
               {loading && (
-                <div className="p-4 text-xs text-muted-foreground flex items-center gap-2">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading crew…
+                <div className="p-6 flex justify-center">
+                  <PenLoader size="sm" inline label="Loading crew…" />
                 </div>
               )}
               {!loading && invites.length === 0 && (
