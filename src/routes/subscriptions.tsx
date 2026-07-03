@@ -235,7 +235,7 @@ function PlanCard({
 }) {
   return (
     <Card className={cn(
-      "relative p-6 flex flex-col gap-5 transition-all hover:shadow-lg hover:-translate-y-0.5",
+      "relative p-6 flex flex-col gap-5 hover-magnetic glass-panel",
       highlight && "border-accent/60 shadow-glow",
       current && "ring-2 ring-accent",
     )}>
