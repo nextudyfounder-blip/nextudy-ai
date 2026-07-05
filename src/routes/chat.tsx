@@ -93,7 +93,7 @@ function ChatPage() {
   const [model, setModel] = useState<"flash" | "pro" | "thinking">("flash");
   const [focusMode, setFocusMode] = useState(false);
   const [contextOpen, setContextOpen] = useState(true);
-  const [templatesOpen, setTemplatesOpen] = useState(false);
+  
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [pinned, setPinned] = useState<Set<string>>(() => {
     if (typeof window === "undefined") return new Set();
