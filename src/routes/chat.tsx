@@ -863,29 +863,6 @@ function ChatPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Prompt templates dialog */}
-      <Dialog open={templatesOpen} onOpenChange={setTemplatesOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <LayoutTemplate className="h-5 w-5" /> Prompt templates
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid sm:grid-cols-2 gap-2 mt-2">
-            {TEMPLATES.map((t, i) => (
-              <button
-                key={t.title}
-                onClick={() => { setInput(t.prompt); setTemplatesOpen(false); textareaRef.current?.focus(); }}
-                style={{ animationDelay: `${i * 40}ms` }}
-                className="text-left rounded-xl border border-border bg-card/60 p-3 hover:border-primary/40 hover:shadow-elegant transition-all animate-fade-in"
-              >
-                <div className="text-sm font-medium">{t.title}</div>
-                <div className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{t.prompt}</div>
-              </button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
     </AppLayout>
   );
 }
