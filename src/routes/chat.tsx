@@ -43,14 +43,6 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
-const TEMPLATES = [
-  { title: "Summarize", prompt: "Summarize the attached document into concise bullet points, grouped by topic." },
-  { title: "Explain simpler", prompt: "Explain the last concept again, but simpler — like I'm 15." },
-  { title: "Quiz me", prompt: "Give me 5 multiple-choice questions from this material with answers hidden below." },
-  { title: "Flashcards", prompt: "Generate 10 Q&A flashcards from the material in a table." },
-  { title: "Compare & contrast", prompt: "Compare and contrast the two main ideas from this material in a table." },
-  { title: "Study plan", prompt: "Create a 7-day study plan for this material with daily goals." },
-];
 
 export const Route = createFileRoute("/chat")({
   component: ChatPage,
