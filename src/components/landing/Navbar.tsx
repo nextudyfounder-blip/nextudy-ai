@@ -1,13 +1,20 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { Home, UserRound } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { setGuest } from "@/hooks/useGuest";
 import logo from "@/assets/nextudy-logo.png";
 
 export function Navbar() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const isLanding = path === "/";
+
+  const startGuest = () => {
+    setGuest(true);
+    navigate({ to: "/chat" });
+  };
 
   return (
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border/60 animate-fade-in">
@@ -32,7 +39,6 @@ export function Navbar() {
             </>
           )}
           <Link to="/whats-new" className="hover:text-foreground transition-colors">What's new</Link>
-          <Link to="/feedback" className="hover:text-foreground transition-colors">Feedback</Link>
         </div>
         <div className="flex items-center gap-2">
           {user ? (
@@ -49,8 +55,9 @@ export function Navbar() {
               <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
                 <Link to="/auth">Log in</Link>
               </Button>
-              <Button variant="hero" size="sm" asChild>
-                <Link to="/auth">Get started</Link>
+              <Button variant="hero" size="sm" onClick={startGuest} className="gap-1.5">
+                <UserRound className="h-3.5 w-3.5" />
+                Guest Account
               </Button>
             </>
           )}
