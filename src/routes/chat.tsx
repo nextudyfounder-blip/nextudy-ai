@@ -106,6 +106,21 @@ function ChatPage() {
     if (typeof window === "undefined") return new Set();
     try { return new Set(JSON.parse(localStorage.getItem("nextudy-pinned-chats") || "[]")); } catch { return new Set(); }
   });
+  const [profileName, setProfileName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) { setProfileName(null); return; }
+    let alive = true;
+    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle().then(({ data }) => {
+      if (alive) setProfileName(
+        (data?.display_name?.trim())
+        || (user.user_metadata?.display_name as string | undefined)
+        || (user.email?.split("@")[0] ?? null)
+      );
+    });
+    return () => { alive = false; };
+  }, [user]);
+
   const searchRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
