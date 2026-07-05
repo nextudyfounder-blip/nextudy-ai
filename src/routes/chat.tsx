@@ -802,21 +802,13 @@ function ChatPage() {
                   <Button
                     type="button" variant="ghost" size="icon"
                     className="rounded-full shrink-0 h-9 w-9"
-                    onClick={() => setTemplatesOpen(true)}
-                    disabled={busy}
-                    title="Prompt templates"
-                  >
-                    <LayoutTemplate className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button" variant="ghost" size="icon"
-                    className="rounded-full shrink-0 h-9 w-9"
                     onClick={() => navigate({ to: "/settings" })}
                     disabled={busy}
                     title="Chat settings"
                   >
                     <Settings2 className="h-4 w-4" />
                   </Button>
+
 
                   <div className="flex-1" />
 
