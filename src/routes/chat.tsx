@@ -34,11 +34,12 @@ import { ContextPanel } from "@/components/chat/ContextPanel";
 import {
   Send, Plus, Loader2, Sparkles, Paperclip, X, Mic, MicOff,
   ThumbsUp, ThumbsDown, Copy, Share2, Wand2, ShieldCheck,
-  MessageSquarePlus, MoreHorizontal, Pencil, Trash2, BookOpen,
-  Code2, Brain, FileText, Search, Image as ImageIcon,
+  MessageSquarePlus, MoreHorizontal, Pencil, Trash2, Brain,
+  Search, Image as ImageIcon,
   Pin, PinOff, Maximize2, Minimize2, Keyboard, ChevronDown, Zap,
-  PanelLeftOpen, LayoutTemplate, Settings2,
+  PanelLeftOpen, Settings2,
 } from "lucide-react";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
