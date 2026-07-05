@@ -254,3 +254,19 @@
   0%, 100% { opacity: 0.55; }
   50%      { opacity: 1; }
 }
+
+@layer utilities {
+  .animate-float-slow   { animation: float-y 6s ease-in-out infinite; }
+  .animate-float-slower { animation: float-y 9s ease-in-out infinite; }
+  .animate-arrow-nudge  { animation: arrow-nudge 1.8s ease-in-out infinite; }
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+@keyframes arrow-nudge {
+  0%, 100% { transform: translate(0, -50%); opacity: 0.4; }
+  50%      { transform: translate(4px, -50%); opacity: 0.9; }
+}
