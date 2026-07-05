@@ -439,11 +439,11 @@ function ChatPage() {
   }, [filteredConvs, pinned]);
 
   return (
-    <AppLayout title="">
+    <AppLayout title="" hideSidebar>
       <div className="flex h-[calc(100vh-3.5rem)] bg-gradient-to-br from-background via-background to-primary/5">
-        {/* Chat-history sidebar */}
+        {/* Chat-history sidebar (single primary sidebar, Gemini-style) */}
         {!focusMode && (
-        <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card/40 backdrop-blur">
+        <aside className="hidden md:flex flex-col w-72 border-r border-border bg-card/40 backdrop-blur">
           <div className="p-3 border-b border-border space-y-2">
             <Button onClick={startNewChat} variant="hero" className="w-full justify-start gap-2" title="New chat (Ctrl+J)">
               <MessageSquarePlus className="h-4 w-4" />
@@ -456,12 +456,21 @@ function ChatPage() {
                   ref={searchRef}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search chats… (Ctrl+K)"
+                  placeholder="Search conversations… (Ctrl+K)"
                   className="h-8 pl-8 text-xs"
                 />
               </div>
             )}
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="w-full flex items-center gap-2 rounded-md border border-dashed border-border/70 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-accent/30 transition"
+              title="Attach an image or PDF"
+            >
+              <ImageIcon className="h-3.5 w-3.5" />
+              <span>Attach image or PDF</span>
+            </button>
           </div>
+
           <div className="flex-1 overflow-y-auto p-2 space-y-4 text-sm">
             {guest ? (
               <div className="m-2 p-3 rounded-lg border border-dashed border-border bg-muted/30">
@@ -485,17 +494,17 @@ function ChatPage() {
                     </div>
                     {items.map((c) => (
                       <div key={c.id} className={`group flex items-center gap-1 rounded-lg px-2 py-1.5 hover:bg-accent/40 cursor-pointer ${convId === c.id ? "bg-accent/60" : ""}`}>
-                        <button onClick={() => openConv(c.id)} className="flex-1 text-left truncate flex items-center gap-1.5">
+                        <button onClick={() => openConv(c.id)} className="flex-1 text-left truncate flex items-center gap-1.5 min-w-0">
                           {pinned.has(c.id) && <Pin className="h-3 w-3 shrink-0 text-primary fill-primary" />}
-                          <span className="truncate">{c.title || "Untitled chat"}</span>
+                          <span className="truncate">{shortenTitle(c.title)}</span>
                         </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-background"><MoreHorizontal className="h-3.5 w-3.5" /></button>
+                            <button className="opacity-60 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 transition p-1 rounded hover:bg-background" title="More"><MoreHorizontal className="h-3.5 w-3.5" /></button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => togglePin(c.id)}>
-                              {pinned.has(c.id) ? <><PinOff className="h-3.5 w-3.5 mr-2" />Unpin</> : <><Pin className="h-3.5 w-3.5 mr-2" />Pin to top</>}
+                              {pinned.has(c.id) ? <><PinOff className="h-3.5 w-3.5 mr-2" />Unpin conversation</> : <><Pin className="h-3.5 w-3.5 mr-2" />Pin conversation</>}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleRename(c.id, c.title || "")}><Pencil className="h-3.5 w-3.5 mr-2" />Rename</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive"><Trash2 className="h-3.5 w-3.5 mr-2" />Delete</DropdownMenuItem>
@@ -506,22 +515,59 @@ function ChatPage() {
                   </div>
                 ))}
                 {conversations.length === 0 && (
-                  <p className="text-xs text-muted-foreground px-2 py-4">No chats yet. Start one below.</p>
+                  <p className="text-xs text-muted-foreground px-2 py-4">No conversations yet. Start one below.</p>
                 )}
                 {conversations.length > 0 && filteredConvs.length === 0 && (
-                  <p className="text-xs text-muted-foreground px-2 py-4">No chats match "{search}".</p>
+                  <div className="m-2 p-3 rounded-lg border border-border bg-card/60 animate-fade-in">
+                    <p className="text-xs font-medium">No matches</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">Nothing found for "{search}".</p>
+                  </div>
                 )}
+
+                {/* Study Crews section (renamed from Notebooks) */}
+                <div className="pt-2">
+                  <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">Study Crews</div>
+                  <button
+                    onClick={() => navigate({ to: "/crews" })}
+                    className="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-accent/40 text-left"
+                  >
+                    <div className="h-6 w-6 rounded-md bg-primary/10 text-primary grid place-items-center">
+                      <Sparkles className="h-3.5 w-3.5" />
+                    </div>
+                    <span className="text-xs">Open your Study Crews</span>
+                  </button>
+                </div>
               </>
             )}
           </div>
-          <div className="border-t border-border p-2 text-xs text-muted-foreground space-y-1">
-            <button onClick={() => setShortcutsOpen(true)} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40 flex items-center gap-2"><Keyboard className="h-3.5 w-3.5" />Keyboard shortcuts</button>
-            <button onClick={() => navigate({ to: "/settings" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Settings</button>
-            <button onClick={() => navigate({ to: "/feedback" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Help & Feedback</button>
-            <button onClick={() => navigate({ to: "/dashboard" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Activity</button>
+
+          {/* Compact user footer with Settings gear next to name (Gemini-style) */}
+          <div className="border-t border-border p-2">
+            {user ? (
+              <div className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-accent/40">
+                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 grid place-items-center text-white text-[11px] font-semibold shrink-0">
+                  {(profileName || user.email || "?").slice(0, 1).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-medium truncate">{profileName || "You"}</div>
+                </div>
+                <button
+                  onClick={() => navigate({ to: "/settings" })}
+                  className="p-1.5 rounded-md hover:bg-background text-muted-foreground shrink-0"
+                  title="Settings"
+                >
+                  <Settings2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setShortcutsOpen(true)} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40 flex items-center gap-2 text-xs text-muted-foreground">
+                <Keyboard className="h-3.5 w-3.5" />Keyboard shortcuts
+              </button>
+            )}
           </div>
         </aside>
         )}
+
 
         {/* Context panel (documents) */}
         {!focusMode && contextOpen && !guest && user && (
