@@ -21,10 +21,11 @@ const items = [
   { icon: Moon, emoji: "🌙", title: "Dark Mode", desc: "Switch between light and dark mode for comfortable studying day and night.", cta: "Try it", to: "/dashboard" as const },
   { icon: Bot, emoji: "🤖", title: "AI Chatbot", desc: "Ask any study question and get instant answers. Supports all subjects including math, biology, chemistry and more.", cta: "Open chat", to: "/chat" as const },
   { icon: ImageIcon, emoji: "📸", title: "Image Upload", desc: "Upload a photo of your textbook or handwritten notes and let AI read it for you.", cta: "Try it", to: "/dashboard" as const },
-  { icon: MessageSquare, emoji: "💬", title: "Feedback Page", desc: "Share your ideas and help us improve Nextudy.", cta: "Send feedback", to: "/feedback" as const },
+  { icon: Sparkles, emoji: "✨", title: "Prompt Templates (soon)", desc: "One-tap starters — Summarize, Quiz me, Flashcards, Study plan and more — rich rendered cards inside the chat. Rolling out in the next update.", soon: true },
   { icon: Flame, emoji: "🔥", title: "Study Streaks", desc: "Coming soon: earn badges for studying multiple days in a row.", soon: true },
   { icon: Trophy, emoji: "🏆", title: "Leaderboard", desc: "Coming soon: compete with other students.", soon: true },
 ];
+
 
 function WhatsNew() {
   return (

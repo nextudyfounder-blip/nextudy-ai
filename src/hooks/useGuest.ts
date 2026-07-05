@@ -1,17 +1,29 @@
-// Guest mode has been disabled to prevent unauthenticated AI usage.
-// These exports remain for backwards-compat with existing imports but are no-ops.
+import { useEffect, useState } from "react";
+
+const KEY = "nextudy-guest";
 
 export function isGuest(): boolean {
-  return false;
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(KEY) === "1";
 }
 
-export function setGuest(_on: boolean) {
+export function setGuest(on: boolean) {
   if (typeof window === "undefined") return;
-  // Clear any leftover legacy flag.
-  window.localStorage.removeItem("nextudy-guest");
+  if (on) window.localStorage.setItem(KEY, "1");
+  else window.localStorage.removeItem(KEY);
   window.dispatchEvent(new Event("nextudy-guest-change"));
 }
 
 export function useGuest() {
-  return false;
+  const [guest, setState] = useState<boolean>(() => isGuest());
+  useEffect(() => {
+    const sync = () => setState(isGuest());
+    window.addEventListener("nextudy-guest-change", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("nextudy-guest-change", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+  return guest;
 }

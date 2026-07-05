@@ -34,22 +34,15 @@ import { ContextPanel } from "@/components/chat/ContextPanel";
 import {
   Send, Plus, Loader2, Sparkles, Paperclip, X, Mic, MicOff,
   ThumbsUp, ThumbsDown, Copy, Share2, Wand2, ShieldCheck,
-  MessageSquarePlus, MoreHorizontal, Pencil, Trash2, BookOpen,
-  Code2, Brain, FileText, Search, Image as ImageIcon,
+  MessageSquarePlus, MoreHorizontal, Pencil, Trash2, Brain,
+  Search, Image as ImageIcon,
   Pin, PinOff, Maximize2, Minimize2, Keyboard, ChevronDown, Zap,
-  PanelLeftOpen, LayoutTemplate, Settings2,
+  PanelLeftOpen, Settings2,
 } from "lucide-react";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
-const TEMPLATES = [
-  { title: "Summarize", prompt: "Summarize the attached document into concise bullet points, grouped by topic." },
-  { title: "Explain simpler", prompt: "Explain the last concept again, but simpler — like I'm 15." },
-  { title: "Quiz me", prompt: "Give me 5 multiple-choice questions from this material with answers hidden below." },
-  { title: "Flashcards", prompt: "Generate 10 Q&A flashcards from the material in a table." },
-  { title: "Compare & contrast", prompt: "Compare and contrast the two main ideas from this material in a table." },
-  { title: "Study plan", prompt: "Create a 7-day study plan for this material with daily goals." },
-];
 
 export const Route = createFileRoute("/chat")({
   component: ChatPage,
@@ -59,12 +52,17 @@ export const Route = createFileRoute("/chat")({
 type Msg = { id?: string; role: "user" | "assistant"; content: string };
 type Conv = { id: string; title: string; updated_at: string };
 
-const STARTERS = [
-  { icon: Brain, title: "Explain a complex topic", prompt: "Explain quantum entanglement in simple terms with an analogy." },
-  { icon: Code2, title: "Code a Python script", prompt: "Write a Python script that reads a CSV and plots the data." },
-  { icon: BookOpen, title: "Quiz me on biology", prompt: "Quiz me on the human circulatory system. Ask 5 multiple-choice questions." },
-  { icon: FileText, title: "Summarize my notes", prompt: "Summarize the key concepts from my most recent uploaded document." },
-];
+// Auto-shorten conversation titles for the sidebar list
+function shortenTitle(raw: string | null | undefined, max = 34): string {
+  const t = (raw ?? "").trim().replace(/\s+/g, " ");
+  if (!t) return "New chat";
+  const stop = new Set(["a","an","the","and","or","but","of","to","in","on","for","with","is","are","how","what","why","can","you","me","my"]);
+  const words = t.split(" ");
+  const keep = words.filter((w, i) => i < 2 || !stop.has(w.toLowerCase())).join(" ");
+  const base = keep.length < t.length ? keep : t;
+  return base.length > max ? base.slice(0, max - 1).trimEnd() + "…" : base;
+}
+
 
 const REMINDER_KEY = "nextudy-pro-reminder";
 
@@ -95,12 +93,27 @@ function ChatPage() {
   const [model, setModel] = useState<"flash" | "pro" | "thinking">("flash");
   const [focusMode, setFocusMode] = useState(false);
   const [contextOpen, setContextOpen] = useState(true);
-  const [templatesOpen, setTemplatesOpen] = useState(false);
+  
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [pinned, setPinned] = useState<Set<string>>(() => {
     if (typeof window === "undefined") return new Set();
     try { return new Set(JSON.parse(localStorage.getItem("nextudy-pinned-chats") || "[]")); } catch { return new Set(); }
   });
+  const [profileName, setProfileName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) { setProfileName(null); return; }
+    let alive = true;
+    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle().then(({ data }) => {
+      if (alive) setProfileName(
+        (data?.display_name?.trim())
+        || (user.user_metadata?.display_name as string | undefined)
+        || (user.email?.split("@")[0] ?? null)
+      );
+    });
+    return () => { alive = false; };
+  }, [user]);
+
   const searchRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -419,11 +432,11 @@ function ChatPage() {
   }, [filteredConvs, pinned]);
 
   return (
-    <AppLayout title="">
+    <AppLayout title="" hideSidebar>
       <div className="flex h-[calc(100vh-3.5rem)] bg-gradient-to-br from-background via-background to-primary/5">
-        {/* Chat-history sidebar */}
+        {/* Chat-history sidebar (single primary sidebar, Gemini-style) */}
         {!focusMode && (
-        <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card/40 backdrop-blur">
+        <aside className="hidden md:flex flex-col w-72 border-r border-border bg-card/40 backdrop-blur">
           <div className="p-3 border-b border-border space-y-2">
             <Button onClick={startNewChat} variant="hero" className="w-full justify-start gap-2" title="New chat (Ctrl+J)">
               <MessageSquarePlus className="h-4 w-4" />
@@ -436,12 +449,21 @@ function ChatPage() {
                   ref={searchRef}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search chats… (Ctrl+K)"
+                  placeholder="Search conversations… (Ctrl+K)"
                   className="h-8 pl-8 text-xs"
                 />
               </div>
             )}
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="w-full flex items-center gap-2 rounded-md border border-dashed border-border/70 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-accent/30 transition"
+              title="Attach an image or PDF"
+            >
+              <ImageIcon className="h-3.5 w-3.5" />
+              <span>Attach image or PDF</span>
+            </button>
           </div>
+
           <div className="flex-1 overflow-y-auto p-2 space-y-4 text-sm">
             {guest ? (
               <div className="m-2 p-3 rounded-lg border border-dashed border-border bg-muted/30">
@@ -465,17 +487,17 @@ function ChatPage() {
                     </div>
                     {items.map((c) => (
                       <div key={c.id} className={`group flex items-center gap-1 rounded-lg px-2 py-1.5 hover:bg-accent/40 cursor-pointer ${convId === c.id ? "bg-accent/60" : ""}`}>
-                        <button onClick={() => openConv(c.id)} className="flex-1 text-left truncate flex items-center gap-1.5">
+                        <button onClick={() => openConv(c.id)} className="flex-1 text-left truncate flex items-center gap-1.5 min-w-0">
                           {pinned.has(c.id) && <Pin className="h-3 w-3 shrink-0 text-primary fill-primary" />}
-                          <span className="truncate">{c.title || "Untitled chat"}</span>
+                          <span className="truncate">{shortenTitle(c.title)}</span>
                         </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-background"><MoreHorizontal className="h-3.5 w-3.5" /></button>
+                            <button className="opacity-60 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 transition p-1 rounded hover:bg-background" title="More"><MoreHorizontal className="h-3.5 w-3.5" /></button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => togglePin(c.id)}>
-                              {pinned.has(c.id) ? <><PinOff className="h-3.5 w-3.5 mr-2" />Unpin</> : <><Pin className="h-3.5 w-3.5 mr-2" />Pin to top</>}
+                              {pinned.has(c.id) ? <><PinOff className="h-3.5 w-3.5 mr-2" />Unpin conversation</> : <><Pin className="h-3.5 w-3.5 mr-2" />Pin conversation</>}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleRename(c.id, c.title || "")}><Pencil className="h-3.5 w-3.5 mr-2" />Rename</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive"><Trash2 className="h-3.5 w-3.5 mr-2" />Delete</DropdownMenuItem>
@@ -486,22 +508,59 @@ function ChatPage() {
                   </div>
                 ))}
                 {conversations.length === 0 && (
-                  <p className="text-xs text-muted-foreground px-2 py-4">No chats yet. Start one below.</p>
+                  <p className="text-xs text-muted-foreground px-2 py-4">No conversations yet. Start one below.</p>
                 )}
                 {conversations.length > 0 && filteredConvs.length === 0 && (
-                  <p className="text-xs text-muted-foreground px-2 py-4">No chats match "{search}".</p>
+                  <div className="m-2 p-3 rounded-lg border border-border bg-card/60 animate-fade-in">
+                    <p className="text-xs font-medium">No matches</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">Nothing found for "{search}".</p>
+                  </div>
                 )}
+
+                {/* Study Crews section (renamed from Notebooks) */}
+                <div className="pt-2">
+                  <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">Study Crews</div>
+                  <button
+                    onClick={() => navigate({ to: "/crews" })}
+                    className="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-accent/40 text-left"
+                  >
+                    <div className="h-6 w-6 rounded-md bg-primary/10 text-primary grid place-items-center">
+                      <Sparkles className="h-3.5 w-3.5" />
+                    </div>
+                    <span className="text-xs">Open your Study Crews</span>
+                  </button>
+                </div>
               </>
             )}
           </div>
-          <div className="border-t border-border p-2 text-xs text-muted-foreground space-y-1">
-            <button onClick={() => setShortcutsOpen(true)} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40 flex items-center gap-2"><Keyboard className="h-3.5 w-3.5" />Keyboard shortcuts</button>
-            <button onClick={() => navigate({ to: "/settings" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Settings</button>
-            <button onClick={() => navigate({ to: "/feedback" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Help & Feedback</button>
-            <button onClick={() => navigate({ to: "/dashboard" })} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40">Activity</button>
+
+          {/* Compact user footer with Settings gear next to name (Gemini-style) */}
+          <div className="border-t border-border p-2">
+            {user ? (
+              <div className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-accent/40">
+                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 grid place-items-center text-white text-[11px] font-semibold shrink-0">
+                  {(profileName || user.email || "?").slice(0, 1).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-medium truncate">{profileName || "You"}</div>
+                </div>
+                <button
+                  onClick={() => navigate({ to: "/settings" })}
+                  className="p-1.5 rounded-md hover:bg-background text-muted-foreground shrink-0"
+                  title="Settings"
+                >
+                  <Settings2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setShortcutsOpen(true)} className="w-full text-left px-2 py-1.5 rounded hover:bg-accent/40 flex items-center gap-2 text-xs text-muted-foreground">
+                <Keyboard className="h-3.5 w-3.5" />Keyboard shortcuts
+              </button>
+            )}
           </div>
         </aside>
         )}
+
 
         {/* Context panel (documents) */}
         {!focusMode && contextOpen && !guest && user && (
@@ -524,28 +583,16 @@ function ChatPage() {
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-6 pb-40">
             <div className="max-w-3xl mx-auto space-y-6">
               {messages.length === 0 && !busy && (
-                <div className="text-center pt-12 sm:pt-20 animate-fade-in">
+                <div className="text-center pt-12 sm:pt-24 animate-fade-in">
                   <h1 className="text-4xl sm:text-5xl font-display font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                    Hello{guest ? ", Guest" : user?.email ? `, ${user.email.split("@")[0]}` : ""}
+                    Hello, {guest ? "Guest" : (profileName || "there")}
                   </h1>
                   <p className="text-2xl sm:text-3xl font-display font-semibold text-muted-foreground mt-1">
                     How can Nextudy help you study today?
                   </p>
-                  <div className="grid sm:grid-cols-2 gap-3 mt-12 max-w-2xl mx-auto">
-                    {STARTERS.map((s) => (
-                      <button
-                        key={s.title}
-                        onClick={() => send(s.prompt)}
-                        className="group text-left rounded-2xl border border-border bg-card/60 backdrop-blur p-4 hover:border-primary/40 hover:shadow-elegant transition-all"
-                      >
-                        <s.icon className="h-5 w-5 text-primary mb-3 group-hover:scale-110 transition-transform" />
-                        <div className="text-sm font-medium">{s.title}</div>
-                        <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{s.prompt}</div>
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
+
 
               {messages.map((m, i) => (
                 <div key={m.id ?? i} className="animate-fade-in">
@@ -748,21 +795,13 @@ function ChatPage() {
                   <Button
                     type="button" variant="ghost" size="icon"
                     className="rounded-full shrink-0 h-9 w-9"
-                    onClick={() => setTemplatesOpen(true)}
-                    disabled={busy}
-                    title="Prompt templates"
-                  >
-                    <LayoutTemplate className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button" variant="ghost" size="icon"
-                    className="rounded-full shrink-0 h-9 w-9"
                     onClick={() => navigate({ to: "/settings" })}
                     disabled={busy}
                     title="Chat settings"
                   >
                     <Settings2 className="h-4 w-4" />
                   </Button>
+
 
                   <div className="flex-1" />
 
@@ -817,29 +856,6 @@ function ChatPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Prompt templates dialog */}
-      <Dialog open={templatesOpen} onOpenChange={setTemplatesOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <LayoutTemplate className="h-5 w-5" /> Prompt templates
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid sm:grid-cols-2 gap-2 mt-2">
-            {TEMPLATES.map((t, i) => (
-              <button
-                key={t.title}
-                onClick={() => { setInput(t.prompt); setTemplatesOpen(false); textareaRef.current?.focus(); }}
-                style={{ animationDelay: `${i * 40}ms` }}
-                className="text-left rounded-xl border border-border bg-card/60 p-3 hover:border-primary/40 hover:shadow-elegant transition-all animate-fade-in"
-              >
-                <div className="text-sm font-medium">{t.title}</div>
-                <div className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{t.prompt}</div>
-              </button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
     </AppLayout>
   );
 }
