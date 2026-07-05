@@ -59,12 +59,17 @@ export const Route = createFileRoute("/chat")({
 type Msg = { id?: string; role: "user" | "assistant"; content: string };
 type Conv = { id: string; title: string; updated_at: string };
 
-const STARTERS = [
-  { icon: Brain, title: "Explain a complex topic", prompt: "Explain quantum entanglement in simple terms with an analogy." },
-  { icon: Code2, title: "Code a Python script", prompt: "Write a Python script that reads a CSV and plots the data." },
-  { icon: BookOpen, title: "Quiz me on biology", prompt: "Quiz me on the human circulatory system. Ask 5 multiple-choice questions." },
-  { icon: FileText, title: "Summarize my notes", prompt: "Summarize the key concepts from my most recent uploaded document." },
-];
+// Auto-shorten conversation titles for the sidebar list
+function shortenTitle(raw: string | null | undefined, max = 34): string {
+  const t = (raw ?? "").trim().replace(/\s+/g, " ");
+  if (!t) return "New chat";
+  const stop = new Set(["a","an","the","and","or","but","of","to","in","on","for","with","is","are","how","what","why","can","you","me","my"]);
+  const words = t.split(" ");
+  const keep = words.filter((w, i) => i < 2 || !stop.has(w.toLowerCase())).join(" ");
+  const base = keep.length < t.length ? keep : t;
+  return base.length > max ? base.slice(0, max - 1).trimEnd() + "…" : base;
+}
+
 
 const REMINDER_KEY = "nextudy-pro-reminder";
 
