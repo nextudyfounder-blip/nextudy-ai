@@ -529,28 +529,16 @@ function ChatPage() {
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-6 pb-40">
             <div className="max-w-3xl mx-auto space-y-6">
               {messages.length === 0 && !busy && (
-                <div className="text-center pt-12 sm:pt-20 animate-fade-in">
+                <div className="text-center pt-12 sm:pt-24 animate-fade-in">
                   <h1 className="text-4xl sm:text-5xl font-display font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                    Hello{guest ? ", Guest" : user?.email ? `, ${user.email.split("@")[0]}` : ""}
+                    Hello, {guest ? "Guest" : (profileName || "there")}
                   </h1>
                   <p className="text-2xl sm:text-3xl font-display font-semibold text-muted-foreground mt-1">
                     How can Nextudy help you study today?
                   </p>
-                  <div className="grid sm:grid-cols-2 gap-3 mt-12 max-w-2xl mx-auto">
-                    {STARTERS.map((s) => (
-                      <button
-                        key={s.title}
-                        onClick={() => send(s.prompt)}
-                        className="group text-left rounded-2xl border border-border bg-card/60 backdrop-blur p-4 hover:border-primary/40 hover:shadow-elegant transition-all"
-                      >
-                        <s.icon className="h-5 w-5 text-primary mb-3 group-hover:scale-110 transition-transform" />
-                        <div className="text-sm font-medium">{s.title}</div>
-                        <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{s.prompt}</div>
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
+
 
               {messages.map((m, i) => (
                 <div key={m.id ?? i} className="animate-fade-in">
