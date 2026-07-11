@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Sparkles, FileText, Bot, LogOut, User as UserIcon, RefreshCw, Users, Settings } from "lucide-react";
+import { Sparkles, FileText, Bot, LogOut, User as UserIcon, RefreshCw, Settings } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
