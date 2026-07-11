@@ -43,13 +43,21 @@ function SettingsPage() {
   const [edu, setEdu] = useState<EduLevel>("university");
   const [style, setStyle] = useState<ResponseStyle>("standard");
   const [clearing, setClearing] = useState(false);
+  const [ledEnabled, setLedEnabled] = useState(true);
+  const [ledPreset, setLedPreset] = useState<LedPresetId>("rainbow-wave");
 
   useEffect(() => {
     const stored = (localStorage.getItem("nextudy-theme") as Theme | null) ?? "system";
     setTheme(stored);
     setEdu((localStorage.getItem("nextudy-edu") as EduLevel | null) ?? "university");
     setStyle((localStorage.getItem("nextudy-style") as ResponseStyle | null) ?? "standard");
+    const led = readLedSettings();
+    setLedEnabled(led.enabled);
+    setLedPreset(led.preset);
   }, []);
+
+  const updateLedEnabled = (v: boolean) => { setLedEnabled(v); setLedSettings({ enabled: v }); };
+  const updateLedPreset = (v: LedPresetId) => { setLedPreset(v); setLedSettings({ preset: v }); };
 
   const updateTheme = (t: Theme) => {
     setTheme(t);
