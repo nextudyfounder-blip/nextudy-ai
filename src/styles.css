@@ -270,3 +270,76 @@
   0%, 100% { transform: translate(0, -50%); opacity: 0.4; }
   50%      { transform: translate(4px, -50%); opacity: 0.9; }
 }
+
+/* ==========================================================================
+   RGB LED screen-edge border effect (chat container)
+   ========================================================================== */
+
+@property --led-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@layer utilities {
+  .led-frame {
+    position: relative;
+    border-radius: 28px;
+    isolation: isolate;
+    --led-angle: 0deg;
+    --led-gradient: conic-gradient(from var(--led-angle),
+      #ff005c, #ff7b00, #ffe600, #00ff88, #00d4ff, #7a00ff, #ff005c);
+  }
+  .led-frame::before,
+  .led-frame::after {
+    content: "";
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  /* Outer soft ambient glow */
+  .led-frame::before {
+    inset: -8px;
+    background: var(--led-gradient);
+    filter: blur(18px);
+    opacity: 0.55;
+    z-index: -1;
+  }
+  /* Crisp perimeter line */
+  .led-frame::after {
+    inset: 0;
+    padding: 2px;
+    background: var(--led-gradient);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    z-index: 2;
+  }
+  .led-flow { animation: led-spin 9s linear infinite; }
+
+  /* Animated gradient presets (use conic + --led-angle) */
+  .led-rainbow-wave { --led-gradient: conic-gradient(from var(--led-angle), #ff005c, #ff7b00, #ffe600, #00ff88, #00d4ff, #7a00ff, #ff005c); }
+  .led-cyberpunk    { --led-gradient: conic-gradient(from var(--led-angle), #ff00ea, #00fff0, #ff00ea, #7a00ff, #ff00ea); }
+  .led-aura         { --led-gradient: conic-gradient(from var(--led-angle), #7a00ff, #b366ff, #e0aaff, #7a00ff); }
+  .led-sunset       { --led-gradient: conic-gradient(from var(--led-angle), #ff5e00, #ff2d55, #ff9500, #ffb347, #ff5e00); }
+  .led-ocean        { --led-gradient: conic-gradient(from var(--led-angle), #00b4d8, #0077b6, #48cae4, #90e0ef, #00b4d8); }
+  .led-nebula       { --led-gradient: conic-gradient(from var(--led-angle), #240046, #7b2cbf, #c77dff, #5a189a, #240046); }
+  .led-forest       { --led-gradient: conic-gradient(from var(--led-angle), #2d6a4f, #74c69d, #40916c, #b7e4c7, #2d6a4f); }
+  .led-fire         { --led-gradient: conic-gradient(from var(--led-angle), #ff3d00, #ffab00, #ff6d00, #ffea00, #ff3d00); }
+
+  /* Static solid tones */
+  .led-cyan    { --led-gradient: #00e5ff; }
+  .led-crimson { --led-gradient: #dc143c; }
+  .led-amber   { --led-gradient: #ffb300; }
+  .led-emerald { --led-gradient: #10b981; }
+  .led-magenta { --led-gradient: #d900ff; }
+  .led-sky     { --led-gradient: #38bdf8; }
+  .led-gold    { --led-gradient: #f5c518; }
+  .led-violet  { --led-gradient: #8b5cf6; }
+  .led-mint    { --led-gradient: #6ee7b7; }
+}
+
+@keyframes led-spin {
+  to { --led-angle: 360deg; }
+}
+

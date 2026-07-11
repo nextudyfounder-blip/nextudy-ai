@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Sparkles, FileText, Bot, LogOut, User as UserIcon, RefreshCw, Users, Settings } from "lucide-react";
+import { Sparkles, FileText, Bot, LogOut, User as UserIcon, RefreshCw, Settings } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +15,6 @@ type Item = { title: string; url: string; icon: typeof FileText };
 const items: Item[] = [
   { title: "Upload & Summarize", url: "/dashboard", icon: FileText },
   { title: "AI Chatbot", url: "/chat", icon: Bot },
-  { title: "Study Crews", url: "/crews", icon: Users },
   { title: "Profile", url: "/profile", icon: UserIcon },
 ];
 

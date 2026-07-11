@@ -30,17 +30,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Markdown } from "@/components/chat/Markdown";
-import { ContextPanel } from "@/components/chat/ContextPanel";
+import { LedFrame } from "@/components/chat/LedFrame";
+import { MOTIVATIONS } from "@/components/chat/motivations";
 import {
   Send, Plus, Loader2, Sparkles, Paperclip, X, Mic, MicOff,
   ThumbsUp, ThumbsDown, Copy, Share2, Wand2, ShieldCheck,
   MessageSquarePlus, MoreHorizontal, Pencil, Trash2, Brain,
-  Search, Image as ImageIcon,
+  Search, Image as ImageIcon, Library, FileText, File as FileIcon,
   Pin, PinOff, Maximize2, Minimize2, Keyboard, ChevronDown, Zap,
-  PanelLeftOpen, Settings2,
+  Settings2, Info,
 } from "lucide-react";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 
@@ -92,14 +93,54 @@ function ChatPage() {
   const [pendingImage, setPendingImage] = useState<{ b64: string; mime: string; name: string } | null>(null);
   const [model, setModel] = useState<"flash" | "pro" | "thinking">("flash");
   const [focusMode, setFocusMode] = useState(false);
-  const [contextOpen, setContextOpen] = useState(true);
-  
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libraryDocs, setLibraryDocs] = useState<Array<{ id: string; file_name: string; created_at: string; status: string | null }>>([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [librarySearch, setLibrarySearch] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [motivation, setMotivation] = useState<string>(() => MOTIVATIONS[0]);
+
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [pinned, setPinned] = useState<Set<string>>(() => {
     if (typeof window === "undefined") return new Set();
     try { return new Set(JSON.parse(localStorage.getItem("nextudy-pinned-chats") || "[]")); } catch { return new Set(); }
   });
   const [profileName, setProfileName] = useState<string | null>(null);
+
+  // Rotating sub-greeting: fresh pick every session refresh
+  useEffect(() => {
+    setMotivation(MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)]);
+  }, []);
+
+  // Onboarding — one-time per device unless dismissed permanently
+  useEffect(() => {
+    if (localStorage.getItem("nextudy-onboarding-dismissed") !== "true") {
+      setShowOnboarding(true);
+    }
+  }, []);
+  const dismissOnboarding = () => {
+    localStorage.setItem("nextudy-onboarding-dismissed", "true");
+    setShowOnboarding(false);
+  };
+
+  // Load documents when the Library modal opens
+  useEffect(() => {
+    if (!libraryOpen || !user) return;
+    let cancel = false;
+    setLibraryLoading(true);
+    supabase.from("documents")
+      .select("id, file_name, status, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(100)
+      .then(({ data, error }) => {
+        if (cancel) return;
+        if (error) toast.error("Couldn't load library");
+        else setLibraryDocs((data ?? []) as typeof libraryDocs);
+        setLibraryLoading(false);
+      });
+    return () => { cancel = true; };
+  }, [libraryOpen, user]);
 
   useEffect(() => {
     if (!user) { setProfileName(null); return; }
@@ -517,17 +558,18 @@ function ChatPage() {
                   </div>
                 )}
 
-                {/* Study Crews section (renamed from Notebooks) */}
+                {/* Library — replaces the old second sidebar */}
                 <div className="pt-2">
-                  <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">Study Crews</div>
+                  <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">Library</div>
                   <button
-                    onClick={() => navigate({ to: "/crews" })}
+                    onClick={() => setLibraryOpen(true)}
                     className="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-accent/40 text-left"
+                    title="Browse your uploaded documents"
                   >
                     <div className="h-6 w-6 rounded-md bg-primary/10 text-primary grid place-items-center">
-                      <Sparkles className="h-3.5 w-3.5" />
+                      <Library className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-xs">Open your Study Crews</span>
+                    <span className="text-xs">Open document library</span>
                   </button>
                 </div>
               </>
@@ -562,36 +604,49 @@ function ChatPage() {
         )}
 
 
-        {/* Context panel (documents) */}
-        {!focusMode && contextOpen && !guest && user && (
-          <ContextPanel
-            userId={user.id}
-            activeDocId={docId}
-            onAttach={(doc) => {
-              if (!doc) { setDocId(null); setDocName(null); return; }
-              setDocId(doc.id);
-              setDocName(doc.name);
-              toast.success(`📎 ${doc.name} attached as context`);
-            }}
-            onUploadClick={() => fileRef.current?.click()}
-            onCollapse={() => setContextOpen(false)}
-          />
-        )}
-
-        {/* Main chat */}
-        <div className="flex-1 flex flex-col min-w-0 relative">
+        {/* Main chat wrapped in RGB LED frame */}
+        <div className="flex-1 flex min-w-0 p-3 sm:p-4">
+        <LedFrame className="flex-1 flex flex-col min-w-0 relative bg-background/60 backdrop-blur-xl overflow-hidden">
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-6 pb-40">
             <div className="max-w-3xl mx-auto space-y-6">
               {messages.length === 0 && !busy && (
-                <div className="text-center pt-12 sm:pt-24 animate-fade-in">
-                  <h1 className="text-4xl sm:text-5xl font-display font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                    Hello, {guest ? "Guest" : (profileName || "there")}
+                <div className="text-center pt-12 sm:pt-20 animate-fade-in space-y-4">
+                  <h1 className="text-4xl sm:text-6xl font-display font-bold tracking-tight bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                    Study less. Know more.
                   </h1>
-                  <p className="text-2xl sm:text-3xl font-display font-semibold text-muted-foreground mt-1">
-                    How can Nextudy help you study today?
+                  <p className="text-lg sm:text-xl font-display font-medium text-muted-foreground">
+                    {motivation}
                   </p>
+
+                  {showOnboarding && (
+                    <div className="mx-auto mt-8 max-w-md text-left rounded-2xl border border-primary/30 bg-primary/5 backdrop-blur px-4 py-3 flex items-start gap-3 animate-fade-in">
+                      <div className="h-8 w-8 rounded-lg bg-primary/15 text-primary grid place-items-center shrink-0">
+                        <Info className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold">See how it works</div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Attach a PDF or image, ask a question, and Nextudy will explain, summarise, or quiz you on it.
+                        </p>
+                        <button
+                          onClick={dismissOnboarding}
+                          className="mt-2 text-[11px] font-medium text-primary hover:underline"
+                        >
+                          Don't show this again
+                        </button>
+                      </div>
+                      <button
+                        onClick={dismissOnboarding}
+                        className="p-1 rounded hover:bg-background/60 text-muted-foreground shrink-0"
+                        title="Dismiss"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
+
 
 
               {messages.map((m, i) => (
@@ -661,15 +716,6 @@ function ChatPage() {
 
           {/* Top-right floating controls */}
           <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
-            {!focusMode && !contextOpen && user && !guest && (
-              <button
-                onClick={() => setContextOpen(true)}
-                title="Show context panel"
-                className="hidden lg:inline-flex p-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition"
-              >
-                <PanelLeftOpen className="h-4 w-4" />
-              </button>
-            )}
             <button
               onClick={() => setFocusMode((v) => !v)}
               title={focusMode ? "Exit focus mode (Ctrl+.)" : "Focus mode (Ctrl+.)"}
@@ -678,6 +724,7 @@ function ChatPage() {
               {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </button>
           </div>
+
 
           {/* Floating input capsule */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-8 pb-4 px-4">
@@ -820,13 +867,103 @@ function ChatPage() {
                   </Button>
                 </div>
               </form>
-              <p className="text-[10px] text-muted-foreground text-center mt-2">
-                Nextudy can make mistakes. Double-check important facts.
-              </p>
             </div>
           </div>
+        </LedFrame>
         </div>
       </div>
+
+
+      {/* Library modal — replaces the second sidebar */}
+      <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Library className="h-5 w-5 text-primary" /> Your library
+            </DialogTitle>
+            <DialogDescription>
+              Attach any uploaded document as context for this chat.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Input
+                  value={librarySearch}
+                  onChange={(e) => setLibrarySearch(e.target.value)}
+                  placeholder="Search documents…"
+                  className="h-9 pl-8 text-sm"
+                />
+              </div>
+              <Button size="sm" onClick={() => { setLibraryOpen(false); fileRef.current?.click(); }} className="gap-1.5">
+                <Plus className="h-3.5 w-3.5" /> Upload
+              </Button>
+            </div>
+
+            {docId && docName && (
+              <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+                <Paperclip className="h-3 w-3 text-primary" />
+                <span className="flex-1 truncate">Attached: <b>{docName}</b></span>
+                <button
+                  onClick={() => { setDocId(null); setDocName(null); }}
+                  className="p-1 rounded hover:bg-background/60"
+                  title="Detach"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+
+            <div className="max-h-[420px] overflow-y-auto rounded-lg border border-border divide-y divide-border">
+              {libraryLoading && (
+                <div className="p-6 text-center text-sm text-muted-foreground">Loading…</div>
+              )}
+              {!libraryLoading && libraryDocs.length === 0 && (
+                <div className="p-8 text-center">
+                  <FileText className="h-8 w-8 mx-auto text-muted-foreground/60 mb-2" />
+                  <p className="text-sm text-muted-foreground">No documents yet.</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Upload a PDF or image to give Nextudy context.</p>
+                </div>
+              )}
+              {!libraryLoading && libraryDocs
+                .filter((d) => !librarySearch.trim() || d.file_name.toLowerCase().includes(librarySearch.toLowerCase()))
+                .map((d) => {
+                  const active = d.id === docId;
+                  const isImage = /\.(png|jpe?g|webp|gif|heic)$/i.test(d.file_name);
+                  const Icon = isImage ? ImageIcon : FileIcon;
+                  return (
+                    <button
+                      key={d.id}
+                      onClick={() => {
+                        setDocId(d.id);
+                        setDocName(d.file_name);
+                        toast.success(`📎 ${d.file_name} attached as context`);
+                        setLibraryOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-accent/40 transition ${
+                        active ? "bg-primary/10" : ""
+                      }`}
+                    >
+                      <div className={`h-9 w-9 rounded-md grid place-items-center shrink-0 ${
+                        active ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+                      }`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium truncate">{d.file_name}</div>
+                        <div className="text-[10px] text-muted-foreground capitalize">{d.status ?? "ready"}</div>
+                      </div>
+                      {active && <span className="text-[10px] font-medium text-primary shrink-0">Attached</span>}
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
 
       {/* Keyboard shortcuts dialog */}
       <Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
