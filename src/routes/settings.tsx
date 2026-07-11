@@ -185,6 +185,62 @@ function SettingsPage() {
           </AlertDialog>
           {guest && <p className="text-xs text-muted-foreground">Guest sessions aren't saved, so there's nothing to clear.</p>}
         </section>
+
+        {/* LED customization */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-base flex items-center gap-2">
+                <Lightbulb className="h-4 w-4 text-primary" /> Screen-edge LED
+              </Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ambient RGB border around the chat workspace.
+              </p>
+            </div>
+            <Switch checked={ledEnabled} onCheckedChange={updateLedEnabled} />
+          </div>
+
+          <div
+            className={`grid grid-cols-2 sm:grid-cols-3 gap-2 transition-opacity ${
+              ledEnabled ? "opacity-100" : "opacity-40 pointer-events-none"
+            }`}
+          >
+            {LED_PRESETS.map((p) => {
+              const active = ledPreset === p.id;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => updateLedPreset(p.id)}
+                  className={`relative rounded-xl border p-3 text-left transition ${
+                    active ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"
+                  }`}
+                >
+                  <div
+                    className={`led-frame led-${p.id} ${p.animated ? "led-flow" : ""} h-10 rounded-lg bg-background/50`}
+                    aria-hidden
+                  />
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-xs font-medium truncate">{p.label}</span>
+                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                      {p.animated ? "Flow" : "Solid"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Legal */}
+        <section className="pt-6 border-t border-border">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <a href="/terms" className="hover:text-foreground transition">Terms</a>
+            <span>·</span>
+            <a href="/privacy" className="hover:text-foreground transition">Privacy</a>
+            <span>·</span>
+            <span>Nextudy can make mistakes. Double-check important facts.</span>
+          </div>
+        </section>
       </div>
     </main>
   );
