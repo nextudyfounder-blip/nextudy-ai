@@ -15,7 +15,6 @@ type Item = { title: string; url: string; icon: typeof FileText };
 const items: Item[] = [
   { title: "Upload & Summarize", url: "/dashboard", icon: FileText },
   { title: "AI Chatbot", url: "/chat", icon: Bot },
-  { title: "Study Crews", url: "/crews", icon: Users },
   { title: "Profile", url: "/profile", icon: UserIcon },
 ];
 
