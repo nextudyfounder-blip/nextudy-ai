@@ -30,17 +30,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Markdown } from "@/components/chat/Markdown";
-import { ContextPanel } from "@/components/chat/ContextPanel";
+import { LedFrame } from "@/components/chat/LedFrame";
+import { MOTIVATIONS } from "@/components/chat/motivations";
 import {
   Send, Plus, Loader2, Sparkles, Paperclip, X, Mic, MicOff,
   ThumbsUp, ThumbsDown, Copy, Share2, Wand2, ShieldCheck,
   MessageSquarePlus, MoreHorizontal, Pencil, Trash2, Brain,
-  Search, Image as ImageIcon,
+  Search, Image as ImageIcon, Library, FileText, File as FileIcon,
   Pin, PinOff, Maximize2, Minimize2, Keyboard, ChevronDown, Zap,
-  PanelLeftOpen, Settings2,
+  Settings2, Info,
 } from "lucide-react";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 
