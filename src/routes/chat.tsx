@@ -558,17 +558,18 @@ function ChatPage() {
                   </div>
                 )}
 
-                {/* Study Crews section (renamed from Notebooks) */}
+                {/* Library — replaces the old second sidebar */}
                 <div className="pt-2">
-                  <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">Study Crews</div>
+                  <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">Library</div>
                   <button
-                    onClick={() => navigate({ to: "/crews" })}
+                    onClick={() => setLibraryOpen(true)}
                     className="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-accent/40 text-left"
+                    title="Browse your uploaded documents"
                   >
                     <div className="h-6 w-6 rounded-md bg-primary/10 text-primary grid place-items-center">
-                      <Sparkles className="h-3.5 w-3.5" />
+                      <Library className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-xs">Open your Study Crews</span>
+                    <span className="text-xs">Open document library</span>
                   </button>
                 </div>
               </>
