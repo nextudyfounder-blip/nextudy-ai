@@ -93,14 +93,54 @@ function ChatPage() {
   const [pendingImage, setPendingImage] = useState<{ b64: string; mime: string; name: string } | null>(null);
   const [model, setModel] = useState<"flash" | "pro" | "thinking">("flash");
   const [focusMode, setFocusMode] = useState(false);
-  const [contextOpen, setContextOpen] = useState(true);
-  
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libraryDocs, setLibraryDocs] = useState<Array<{ id: string; file_name: string; created_at: string; status: string | null }>>([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [librarySearch, setLibrarySearch] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [motivation, setMotivation] = useState<string>(() => MOTIVATIONS[0]);
+
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [pinned, setPinned] = useState<Set<string>>(() => {
     if (typeof window === "undefined") return new Set();
     try { return new Set(JSON.parse(localStorage.getItem("nextudy-pinned-chats") || "[]")); } catch { return new Set(); }
   });
   const [profileName, setProfileName] = useState<string | null>(null);
+
+  // Rotating sub-greeting: fresh pick every session refresh
+  useEffect(() => {
+    setMotivation(MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)]);
+  }, []);
+
+  // Onboarding — one-time per device unless dismissed permanently
+  useEffect(() => {
+    if (localStorage.getItem("nextudy-onboarding-dismissed") !== "true") {
+      setShowOnboarding(true);
+    }
+  }, []);
+  const dismissOnboarding = () => {
+    localStorage.setItem("nextudy-onboarding-dismissed", "true");
+    setShowOnboarding(false);
+  };
+
+  // Load documents when the Library modal opens
+  useEffect(() => {
+    if (!libraryOpen || !user) return;
+    let cancel = false;
+    setLibraryLoading(true);
+    supabase.from("documents")
+      .select("id, file_name, status, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(100)
+      .then(({ data, error }) => {
+        if (cancel) return;
+        if (error) toast.error("Couldn't load library");
+        else setLibraryDocs((data ?? []) as typeof libraryDocs);
+        setLibraryLoading(false);
+      });
+    return () => { cancel = true; };
+  }, [libraryOpen, user]);
 
   useEffect(() => {
     if (!user) { setProfileName(null); return; }
