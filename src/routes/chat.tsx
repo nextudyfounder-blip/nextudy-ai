@@ -856,12 +856,23 @@ function ChatPage() {
                   <Button type="button" variant="ghost" size="icon" className={`rounded-full shrink-0 h-9 w-9 ${listening ? "text-red-500 animate-pulse" : ""}`} onClick={toggleMic} disabled={busy} title="Voice input">
                     {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                   </Button>
+                  <Button
+                    type="submit"
+                    size="icon"
+                    className={`rounded-full shrink-0 h-9 w-9 transition-all ${input.trim() ? "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white scale-100" : "bg-muted text-muted-foreground scale-90"}`}
+                    disabled={busy || !input.trim()}
+                    title="Send"
+                  >
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
               </form>
             </div>
           </div>
         </LedFrame>
         </div>
       </div>
+
 
       {/* Library modal — replaces the second sidebar */}
       <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
