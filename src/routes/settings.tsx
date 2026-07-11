@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles, ArrowLeft, Sun, Moon, Monitor, Trash2 } from "lucide-react";
+import { Sparkles, ArrowLeft, Sun, Moon, Monitor, Trash2, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -15,6 +16,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useGuest } from "@/hooks/useGuest";
+import {
+  LED_PRESETS, readLedSettings, setLedSettings, type LedPresetId,
+} from "@/components/chat/LedFrame";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
