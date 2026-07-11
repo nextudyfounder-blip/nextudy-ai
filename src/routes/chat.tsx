@@ -604,36 +604,49 @@ function ChatPage() {
         )}
 
 
-        {/* Context panel (documents) */}
-        {!focusMode && contextOpen && !guest && user && (
-          <ContextPanel
-            userId={user.id}
-            activeDocId={docId}
-            onAttach={(doc) => {
-              if (!doc) { setDocId(null); setDocName(null); return; }
-              setDocId(doc.id);
-              setDocName(doc.name);
-              toast.success(`📎 ${doc.name} attached as context`);
-            }}
-            onUploadClick={() => fileRef.current?.click()}
-            onCollapse={() => setContextOpen(false)}
-          />
-        )}
-
-        {/* Main chat */}
-        <div className="flex-1 flex flex-col min-w-0 relative">
+        {/* Main chat wrapped in RGB LED frame */}
+        <div className="flex-1 flex min-w-0 p-3 sm:p-4">
+        <LedFrame className="flex-1 flex flex-col min-w-0 relative bg-background/60 backdrop-blur-xl overflow-hidden">
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-6 pb-40">
             <div className="max-w-3xl mx-auto space-y-6">
               {messages.length === 0 && !busy && (
-                <div className="text-center pt-12 sm:pt-24 animate-fade-in">
-                  <h1 className="text-4xl sm:text-5xl font-display font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                    Hello, {guest ? "Guest" : (profileName || "there")}
+                <div className="text-center pt-12 sm:pt-20 animate-fade-in space-y-4">
+                  <h1 className="text-4xl sm:text-6xl font-display font-bold tracking-tight bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                    Study less. Know more.
                   </h1>
-                  <p className="text-2xl sm:text-3xl font-display font-semibold text-muted-foreground mt-1">
-                    How can Nextudy help you study today?
+                  <p className="text-lg sm:text-xl font-display font-medium text-muted-foreground">
+                    {motivation}
                   </p>
+
+                  {showOnboarding && (
+                    <div className="mx-auto mt-8 max-w-md text-left rounded-2xl border border-primary/30 bg-primary/5 backdrop-blur px-4 py-3 flex items-start gap-3 animate-fade-in">
+                      <div className="h-8 w-8 rounded-lg bg-primary/15 text-primary grid place-items-center shrink-0">
+                        <Info className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold">See how it works</div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Attach a PDF or image, ask a question, and Nextudy will explain, summarise, or quiz you on it.
+                        </p>
+                        <button
+                          onClick={dismissOnboarding}
+                          className="mt-2 text-[11px] font-medium text-primary hover:underline"
+                        >
+                          Don't show this again
+                        </button>
+                      </div>
+                      <button
+                        onClick={dismissOnboarding}
+                        className="p-1 rounded hover:bg-background/60 text-muted-foreground shrink-0"
+                        title="Dismiss"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
+
 
 
               {messages.map((m, i) => (
