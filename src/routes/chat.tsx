@@ -856,15 +856,102 @@ function ChatPage() {
                   <Button type="button" variant="ghost" size="icon" className={`rounded-full shrink-0 h-9 w-9 ${listening ? "text-red-500 animate-pulse" : ""}`} onClick={toggleMic} disabled={busy} title="Voice input">
                     {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                   </Button>
-                  <Button
-                    type="submit"
-                    size="icon"
-                    className={`rounded-full shrink-0 h-9 w-9 transition-all ${input.trim() ? "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white scale-100" : "bg-muted text-muted-foreground scale-90"}`}
-                    disabled={busy || !input.trim()}
-                    title="Send"
-                  >
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </Button>
+              </form>
+            </div>
+          </div>
+        </LedFrame>
+        </div>
+      </div>
+
+      {/* Library modal — replaces the second sidebar */}
+      <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Library className="h-5 w-5 text-primary" /> Your library
+            </DialogTitle>
+            <DialogDescription>
+              Attach any uploaded document as context for this chat.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Input
+                  value={librarySearch}
+                  onChange={(e) => setLibrarySearch(e.target.value)}
+                  placeholder="Search documents…"
+                  className="h-9 pl-8 text-sm"
+                />
+              </div>
+              <Button size="sm" onClick={() => { setLibraryOpen(false); fileRef.current?.click(); }} className="gap-1.5">
+                <Plus className="h-3.5 w-3.5" /> Upload
+              </Button>
+            </div>
+
+            {docId && docName && (
+              <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+                <Paperclip className="h-3 w-3 text-primary" />
+                <span className="flex-1 truncate">Attached: <b>{docName}</b></span>
+                <button
+                  onClick={() => { setDocId(null); setDocName(null); }}
+                  className="p-1 rounded hover:bg-background/60"
+                  title="Detach"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+
+            <div className="max-h-[420px] overflow-y-auto rounded-lg border border-border divide-y divide-border">
+              {libraryLoading && (
+                <div className="p-6 text-center text-sm text-muted-foreground">Loading…</div>
+              )}
+              {!libraryLoading && libraryDocs.length === 0 && (
+                <div className="p-8 text-center">
+                  <FileText className="h-8 w-8 mx-auto text-muted-foreground/60 mb-2" />
+                  <p className="text-sm text-muted-foreground">No documents yet.</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Upload a PDF or image to give Nextudy context.</p>
+                </div>
+              )}
+              {!libraryLoading && libraryDocs
+                .filter((d) => !librarySearch.trim() || d.file_name.toLowerCase().includes(librarySearch.toLowerCase()))
+                .map((d) => {
+                  const active = d.id === docId;
+                  const isImage = /\.(png|jpe?g|webp|gif|heic)$/i.test(d.file_name);
+                  const Icon = isImage ? ImageIcon : FileIcon;
+                  return (
+                    <button
+                      key={d.id}
+                      onClick={() => {
+                        setDocId(d.id);
+                        setDocName(d.file_name);
+                        toast.success(`📎 ${d.file_name} attached as context`);
+                        setLibraryOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-accent/40 transition ${
+                        active ? "bg-primary/10" : ""
+                      }`}
+                    >
+                      <div className={`h-9 w-9 rounded-md grid place-items-center shrink-0 ${
+                        active ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+                      }`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium truncate">{d.file_name}</div>
+                        <div className="text-[10px] text-muted-foreground capitalize">{d.status ?? "ready"}</div>
+                      </div>
+                      {active && <span className="text-[10px] font-medium text-primary shrink-0">Attached</span>}
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
                 </div>
               </form>
               <p className="text-[10px] text-muted-foreground text-center mt-2">
