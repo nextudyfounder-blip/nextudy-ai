@@ -963,15 +963,7 @@ function ChatPage() {
         </DialogContent>
       </Dialog>
 
-                </div>
-              </form>
-              <p className="text-[10px] text-muted-foreground text-center mt-2">
-                Nextudy can make mistakes. Double-check important facts.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+
 
       {/* Keyboard shortcuts dialog */}
       <Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
