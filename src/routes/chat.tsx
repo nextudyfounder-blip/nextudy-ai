@@ -112,15 +112,29 @@ function ChatPage() {
     setMotivation(MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)]);
   }, []);
 
-  // Onboarding — one-time per device unless dismissed permanently
+  // Onboarding — once per account (profile-backed), with device cache for guests
   useEffect(() => {
-    if (localStorage.getItem("nextudy-onboarding-dismissed") !== "true") {
-      setShowOnboarding(true);
-    }
-  }, []);
-  const dismissOnboarding = () => {
+    let cancel = false;
+    const localDismissed = localStorage.getItem("nextudy-onboarding-dismissed") === "true";
+    if (localDismissed) return;
+    if (!user) { setShowOnboarding(true); return; }
+    supabase.from("profiles").select("onboarding_dismissed").eq("id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (cancel) return;
+        if (data?.onboarding_dismissed) {
+          localStorage.setItem("nextudy-onboarding-dismissed", "true");
+          setShowOnboarding(false);
+        } else {
+          setShowOnboarding(true);
+        }
+      });
+    return () => { cancel = true; };
+  }, [user]);
+
+  const dismissOnboarding = async () => {
     localStorage.setItem("nextudy-onboarding-dismissed", "true");
     setShowOnboarding(false);
+    if (user) await supabase.from("profiles").update({ onboarding_dismissed: true }).eq("id", user.id);
   };
 
   // Load documents when the Library modal opens
@@ -606,7 +620,7 @@ function ChatPage() {
 
         {/* Main chat wrapped in RGB LED frame */}
         <div className="flex-1 flex min-w-0 p-3 sm:p-4">
-        <LedFrame className="flex-1 flex flex-col min-w-0 relative bg-background/60 backdrop-blur-xl overflow-hidden">
+        <LedFrame className="flex-1 flex flex-col min-w-0 relative bg-background overflow-hidden">
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-6 pb-40">
             <div className="max-w-3xl mx-auto space-y-6">
               {messages.length === 0 && !busy && (

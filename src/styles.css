@@ -343,3 +343,12 @@
   to { --led-angle: 360deg; }
 }
 
+/* Accessibility: calm the LED border when reduced motion is preferred */
+.led-reduced::before { filter: blur(10px); opacity: 0.3; }
+.led-reduced { animation: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .led-flow { animation: none !important; }
+  .led-frame::before { opacity: 0.3; }
+}
+

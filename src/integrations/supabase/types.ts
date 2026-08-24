@@ -150,6 +150,9 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          led_enabled: boolean
+          led_preset: string
+          onboarding_dismissed: boolean
           plan: string
           preferred_language: string
           updated_at: string
@@ -162,6 +165,9 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          led_enabled?: boolean
+          led_preset?: string
+          onboarding_dismissed?: boolean
           plan?: string
           preferred_language?: string
           updated_at?: string
@@ -174,6 +180,9 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          led_enabled?: boolean
+          led_preset?: string
+          onboarding_dismissed?: boolean
           plan?: string
           preferred_language?: string
           updated_at?: string
