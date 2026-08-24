@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const LED_PRESETS = [
   { id: "rainbow-wave",   label: "Rainbow Wave",    animated: true  },
