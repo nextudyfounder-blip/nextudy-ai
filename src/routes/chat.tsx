@@ -112,15 +112,29 @@ function ChatPage() {
     setMotivation(MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)]);
   }, []);
 
-  // Onboarding — one-time per device unless dismissed permanently
+  // Onboarding — once per account (profile-backed), with device cache for guests
   useEffect(() => {
-    if (localStorage.getItem("nextudy-onboarding-dismissed") !== "true") {
-      setShowOnboarding(true);
-    }
-  }, []);
-  const dismissOnboarding = () => {
+    let cancel = false;
+    const localDismissed = localStorage.getItem("nextudy-onboarding-dismissed") === "true";
+    if (localDismissed) return;
+    if (!user) { setShowOnboarding(true); return; }
+    supabase.from("profiles").select("onboarding_dismissed").eq("id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (cancel) return;
+        if (data?.onboarding_dismissed) {
+          localStorage.setItem("nextudy-onboarding-dismissed", "true");
+          setShowOnboarding(false);
+        } else {
+          setShowOnboarding(true);
+        }
+      });
+    return () => { cancel = true; };
+  }, [user]);
+
+  const dismissOnboarding = async () => {
     localStorage.setItem("nextudy-onboarding-dismissed", "true");
     setShowOnboarding(false);
+    if (user) await supabase.from("profiles").update({ onboarding_dismissed: true }).eq("id", user.id);
   };
 
   // Load documents when the Library modal opens
