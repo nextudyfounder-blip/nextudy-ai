@@ -87,7 +87,7 @@ export function setLedSettings(next: Partial<{ enabled: boolean; preset: LedPres
   void (async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const patch: Record<string, unknown> = {};
+    const patch: { led_enabled?: boolean; led_preset?: string } = {};
     if (typeof next.enabled === "boolean") patch.led_enabled = next.enabled;
     if (next.preset) patch.led_preset = next.preset;
     if (Object.keys(patch).length) await supabase.from("profiles").update(patch).eq("id", user.id);
