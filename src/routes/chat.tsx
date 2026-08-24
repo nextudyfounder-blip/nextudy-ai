@@ -620,7 +620,7 @@ function ChatPage() {
 
         {/* Main chat wrapped in RGB LED frame */}
         <div className="flex-1 flex min-w-0 p-3 sm:p-4">
-        <LedFrame className="flex-1 flex flex-col min-w-0 relative bg-background/60 backdrop-blur-xl overflow-hidden">
+        <LedFrame className="flex-1 flex flex-col min-w-0 relative bg-background overflow-hidden">
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-6 pb-40">
             <div className="max-w-3xl mx-auto space-y-6">
               {messages.length === 0 && !busy && (
