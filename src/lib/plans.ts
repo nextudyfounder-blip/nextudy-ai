@@ -1,21 +1,14 @@
 /** Global Nextudy plan architecture: BASIC (free), PRO, TURBO. Individual plans only. */
 
+import { getActiveEvent, eventDiscountFor, type HolidayEvent } from "@/lib/holidays";
+
 export type PlanId = "basic" | "pro" | "turbo";
-
-/** WK DEAL promo window (UTC). Tags & discounted rates disappear automatically after this. */
-export const WK_DEAL_END = new Date("2026-09-14T23:59:59Z");
-
-export function isWkDealActive(now: Date = new Date()): boolean {
-  return now.getTime() <= WK_DEAL_END.getTime();
-}
 
 export interface PlanDef {
   id: PlanId;
   name: string;
-  /** Baseline monthly price in EUR. */
+  /** Standard monthly price in EUR. */
   price: number;
-  /** Discounted WK DEAL monthly price in EUR (undefined = no promo). */
-  dealPrice?: number;
   tagline: string;
   features: string[];
 }
@@ -30,20 +23,19 @@ export const PLANS: PlanDef[] = [
       "Unlimited basic chat questions",
       "Unlimited document & image uploads",
       "AI summaries & flashcards",
-      "1 study language",
+      "8 solid LED colours (flowing or static)",
     ],
   },
   {
     id: "pro",
     name: "Pro",
     price: 5,
-    dealPrice: 3.5,
     tagline: "Individual power-user pass.",
     features: [
       "Everything in Basic",
       "Advanced reasoning toggle",
       "Multi-file context processing",
-      "Priority model access",
+      "Rainbow neon & multi-colour LED flows",
       "All 5 study languages",
     ],
   },
@@ -51,7 +43,6 @@ export const PLANS: PlanDef[] = [
     id: "turbo",
     name: "Turbo",
     price: 7,
-    dealPrice: 5,
     tagline: "Maximum AI dispatch speed.",
     features: [
       "Everything in Pro",
@@ -63,13 +54,26 @@ export const PLANS: PlanDef[] = [
   },
 ];
 
-/** Price actually charged right now, respecting the WK DEAL window. */
+/** The event driving the current discounts, if any (fully date-driven). */
+export function activeEvent(now: Date = new Date()): HolidayEvent | null {
+  return getActiveEvent(now);
+}
+
+/** Price actually charged right now, respecting the active event discount. */
 export function activePrice(plan: PlanDef, now: Date = new Date()): number {
-  return plan.dealPrice !== undefined && isWkDealActive(now) ? plan.dealPrice : plan.price;
+  if (plan.price === 0) return 0;
+  const discount = eventDiscountFor(plan.id, now);
+  return Math.max(0, Math.round((plan.price - discount) * 100) / 100);
 }
 
 export function showsDeal(plan: PlanDef, now: Date = new Date()): boolean {
-  return plan.dealPrice !== undefined && isWkDealActive(now);
+  return plan.price > 0 && eventDiscountFor(plan.id, now) > 0;
+}
+
+/** Promo label shown on discounted plans, e.g. "BLACK FRIDAY DEAL". */
+export function dealLabel(now: Date = new Date()): string | null {
+  const event = getActiveEvent(now);
+  return event ? `${event.label.toUpperCase()} DEAL` : null;
 }
 
 export function formatEur(amount: number): string {
@@ -84,4 +88,13 @@ export function normalizePlan(value?: string | null): PlanId {
   if (v === "turbo") return "turbo";
   if (v === "pro") return "pro";
   return "basic";
+}
+
+export function planById(id: PlanId): PlanDef {
+  return PLANS.find((p) => p.id === id) ?? PLANS[0];
+}
+
+/** Pro & Turbo unlock the advanced LED presets. */
+export function hasProLed(plan: PlanId): boolean {
+  return plan === "pro" || plan === "turbo";
 }
