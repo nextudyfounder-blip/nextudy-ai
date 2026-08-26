@@ -80,9 +80,9 @@ export function inviteMemberEmail(opts: {
   workspaceUrl?: string;
 }) {
   const inviter = opts.inviterName?.trim() || "Your teammate";
-  const tierLabel = opts.tier === "turbo" ? "Nextudy Turbo" : "Nextudy Teams";
+  const tierLabel = opts.tier === "turbo" ? "Nextudy Turbo" : "Nextudy Pro";
   const isSplit = opts.billingStrategy === "split-bill";
-  const share = opts.tier === "turbo" ? "€12.00" : "€16.00";
+  const share = opts.tier === "turbo" ? "€7.00" : "€5.00";
   const ctaUrl = isSplit ? opts.checkoutUrl || "https://nextudy.app" : opts.workspaceUrl || "https://nextudy.app/dashboard";
   const ctaLabel = isSplit ? `Pay ${share}/mo & join →` : "Join the workspace →";
 
