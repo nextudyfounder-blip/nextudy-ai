@@ -16,9 +16,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useGuest } from "@/hooks/useGuest";
-import {
-  LED_PRESETS, readLedSettings, setLedSettings, type LedPresetId,
-} from "@/components/chat/LedFrame";
+import { readLedSettings, setLedSettings } from "@/components/chat/LedFrame";
+import { REFERRAL_NOTE } from "@/lib/plans";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -44,20 +43,16 @@ function SettingsPage() {
   const [style, setStyle] = useState<ResponseStyle>("standard");
   const [clearing, setClearing] = useState(false);
   const [ledEnabled, setLedEnabled] = useState(true);
-  const [ledPreset, setLedPreset] = useState<LedPresetId>("rainbow-wave");
 
   useEffect(() => {
     const stored = (localStorage.getItem("nextudy-theme") as Theme | null) ?? "system";
     setTheme(stored);
     setEdu((localStorage.getItem("nextudy-edu") as EduLevel | null) ?? "university");
     setStyle((localStorage.getItem("nextudy-style") as ResponseStyle | null) ?? "standard");
-    const led = readLedSettings();
-    setLedEnabled(led.enabled);
-    setLedPreset(led.preset);
+    setLedEnabled(readLedSettings().enabled);
   }, []);
 
   const updateLedEnabled = (v: boolean) => { setLedEnabled(v); setLedSettings({ enabled: v }); };
-  const updateLedPreset = (v: LedPresetId) => { setLedPreset(v); setLedSettings({ preset: v }); };
 
   const updateTheme = (t: Theme) => {
     setTheme(t);
@@ -200,35 +195,14 @@ function SettingsPage() {
             <Switch checked={ledEnabled} onCheckedChange={updateLedEnabled} />
           </div>
 
-          <div
-            className={`grid grid-cols-2 sm:grid-cols-3 gap-2 transition-opacity ${
-              ledEnabled ? "opacity-100" : "opacity-40 pointer-events-none"
-            }`}
-          >
-            {LED_PRESETS.map((p) => {
-              const active = ledPreset === p.id;
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => updateLedPreset(p.id)}
-                  className={`relative rounded-xl border p-3 text-left transition ${
-                    active ? "border-primary bg-primary/10" : "border-border hover:bg-muted/40"
-                  }`}
-                >
-                  <div
-                    className={`led-frame led-${p.id} ${p.animated ? "led-flow" : ""} h-10 rounded-lg bg-background/50`}
-                    aria-hidden
-                  />
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-xs font-medium truncate">{p.label}</span>
-                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                      {p.animated ? "Flow" : "Solid"}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+          <p className="text-xs text-muted-foreground">
+            Colour customisation is temporarily unavailable — the default neon flow is used.
+          </p>
+        </section>
+
+        {/* Referral */}
+        <section className="rounded-xl border border-accent/30 bg-gradient-accent/10 p-4">
+          <p className="text-sm font-medium text-accent">{REFERRAL_NOTE}</p>
         </section>
 
         {/* Legal */}
