@@ -134,7 +134,7 @@ function CrewsPage() {
                 >
                   <MemberRow
                     email={inv.invitee_email}
-                    role={inv.tier === "turbo" ? "Turbo seat" : "Teams seat"}
+                    role={inv.tier === "turbo" ? "Turbo member" : "Pro member"}
                     status={inv.status}
                     strategy={inv.billing_strategy}
                     checkoutUrl={inv.stripe_checkout_url}
@@ -332,9 +332,9 @@ function InviteDialog({
             <Label>Tier</Label>
             <div className="grid grid-cols-2 gap-2">
               <TierChip active={tier === "teams"} onClick={() => setTier("teams")}
-                icon={<Users className="h-3.5 w-3.5" />} label="Teams" price="€16 / seat" />
+                icon={<Users className="h-3.5 w-3.5" />} label="Pro" price="€5 / member" />
               <TierChip active={tier === "turbo"} onClick={() => setTier("turbo")}
-                icon={<Zap className="h-3.5 w-3.5" />} label="Turbo" price="€12 / seat" />
+                icon={<Zap className="h-3.5 w-3.5" />} label="Turbo" price="€7 / member" />
             </div>
           </div>
 

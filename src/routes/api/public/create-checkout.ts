@@ -11,8 +11,7 @@ const CORS = {
 };
 
 const InputSchema = z.object({
-  tier: z.enum(["pro", "teams", "turbo"]),
-  seats: z.number().int().min(1).max(50).optional(),
+  tier: z.enum(["pro", "turbo"]),
 });
 
 function json(status: number, body: unknown) {
@@ -45,16 +44,16 @@ export const Route = createFileRoute("/api/public/create-checkout")({
 
           const parsed = InputSchema.safeParse(await request.json().catch(() => ({})));
           if (!parsed.success) return json(400, { error: "Invalid payload" });
-          const { tier, seats } = parsed.data;
+          const { tier } = parsed.data;
 
           const origin = new URL(request.url).origin;
           const session = await createSubscriptionCheckout({
             tier,
-            seats: seats ?? 1,
+            seats: 1,
             customerEmail: userData.user.email,
             successUrl: `${origin}/subscriptions?checkout=success`,
             cancelUrl: `${origin}/subscriptions?checkout=cancelled`,
-            metadata: { user_id: userData.user.id, tier, seats: String(seats ?? 1) },
+            metadata: { user_id: userData.user.id, tier },
           });
 
           return json(200, { url: session.url, id: session.id });
