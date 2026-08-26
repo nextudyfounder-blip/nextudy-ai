@@ -1,5 +1,7 @@
 // Server-only Stripe helper using the REST API directly (Worker-safe).
 
+import { PLANS, activePrice } from "@/lib/plans";
+
 const STRIPE_BASE = "https://api.stripe.com/v1";
 
 function secretKey() {
@@ -55,7 +57,7 @@ export interface CheckoutSession {
 
 /**
  * Create a subscription Checkout Session using dynamic price_data.
- * PRO = €7 / month (individual), TEAMS = €16 / seat / month, TURBO = €12 / seat / month.
+ * PRO and TURBO use the current plan pricing (WK DEAL aware).
  */
 export async function createSubscriptionCheckout(input: {
   tier: "pro" | "teams" | "turbo";
@@ -65,14 +67,9 @@ export async function createSubscriptionCheckout(input: {
   cancelUrl: string;
   metadata?: Record<string, string>;
 }): Promise<CheckoutSession> {
-  const priceCents =
-    input.tier === "pro" ? 700 : input.tier === "turbo" ? 1200 : 1600;
-  const productName =
-    input.tier === "pro"
-      ? "Nextudy Pro — Individual"
-      : input.tier === "turbo"
-        ? "Nextudy Turbo — Seat"
-        : "Nextudy Teams — Seat";
+  const plan = PLANS.find((p) => p.id === (input.tier === "teams" ? "pro" : input.tier))!;
+  const priceCents = Math.round(activePrice(plan) * 100);
+  const productName = `Nextudy ${plan.name}`;
   const quantity = input.tier === "pro" ? 1 : Math.max(1, input.seats ?? 1);
 
   return stripeRequest<CheckoutSession>("/checkout/sessions", {

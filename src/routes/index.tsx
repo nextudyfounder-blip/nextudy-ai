@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/landing/Navbar";
 import { Hero } from "@/components/landing/Hero";
 import { Features } from "@/components/landing/Features";
-import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Pricing } from "@/components/landing/Pricing";
 import { Footer } from "@/components/landing/Footer";
 import { RevealOnScroll } from "@/components/RevealOnScroll";
@@ -28,7 +27,6 @@ function Index() {
     <main className="min-h-screen">
       <Navbar />
       <Hero />
-      <RevealOnScroll><HowItWorks /></RevealOnScroll>
       <RevealOnScroll><Features /></RevealOnScroll>
       <RevealOnScroll><Pricing /></RevealOnScroll>
       <Footer />
