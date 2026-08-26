@@ -18,6 +18,8 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:title", content: "Nextudy — Study less. Know more." },
       { property: "og:description", content: "Turn PDFs and photos into summaries, flashcards and AI chat answers." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
