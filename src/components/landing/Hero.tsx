@@ -57,7 +57,7 @@ export function Hero() {
         </div>
 
         {/* Animated 4-step flow */}
-        <div className="relative mt-20">
+        <div id="how-it-works" className="relative mt-20 scroll-mt-24">
           <div className="hidden md:block absolute left-0 right-0 top-14 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
           <ol className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 relative">
             {steps.map((s, i) => (
