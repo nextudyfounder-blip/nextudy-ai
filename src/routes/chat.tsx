@@ -29,7 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Markdown } from "@/components/chat/Markdown";
+import { AiMessage, AiStatusIndicator } from "@/components/chat/AiMessage";
 import { LedFrame } from "@/components/chat/LedFrame";
 import { MOTIVATIONS } from "@/components/chat/motivations";
 import {
@@ -85,6 +85,16 @@ function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  // Messages generated in this session animate once; loaded history never does.
+  const freshIds = useRef<Set<string>>(new Set());
+  const wasBusy = useRef(false);
+  useEffect(() => {
+    if (wasBusy.current && !busy) {
+      const last = messages[messages.length - 1];
+      if (last?.role === "assistant") freshIds.current.add(String(last.id ?? messages.length - 1));
+    }
+    wasBusy.current = busy;
+  }, [busy, messages]);
   const [convId, setConvId] = useState<string | null>(null);
   const [docId, setDocId] = useState<string | null>(null);
   const [docName, setDocName] = useState<string | null>(null);
@@ -677,7 +687,7 @@ function ChatPage() {
                         <Sparkles className="h-4 w-4 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <Markdown content={m.content} />
+                        <AiMessage content={m.content} animate={freshIds.current.has(String(m.id ?? i))} />
                         {m.id && (
                           <div className="flex items-center gap-1 mt-2 text-muted-foreground">
                             <IconBtn title="Good response" onClick={() => toast.success("Thanks for the feedback!")}><ThumbsUp className="h-3.5 w-3.5" /></IconBtn>
@@ -743,6 +753,8 @@ function ChatPage() {
           {/* Floating input capsule */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-8 pb-4 px-4">
             <div className="max-w-3xl mx-auto">
+              {busy && <AiStatusIndicator />}
+
               {/* Attachment preview row */}
               {(docName || pendingImage) && (
                 <div className="flex items-center gap-2 mb-3 mx-auto w-fit animate-fade-in">
