@@ -316,27 +316,30 @@
     z-index: 2;
   }
   .led-flow { animation: led-spin 9s linear infinite; }
+  .led-flow { --led-gradient: var(--led-gradient-flow, var(--led-gradient)); }
 
-  /* Animated gradient presets (use conic + --led-angle) */
-  .led-rainbow-wave { --led-gradient: conic-gradient(from var(--led-angle), #ff005c, #ff7b00, #ffe600, #00ff88, #00d4ff, #7a00ff, #ff005c); }
-  .led-cyberpunk    { --led-gradient: conic-gradient(from var(--led-angle), #ff00ea, #00fff0, #ff00ea, #7a00ff, #ff00ea); }
-  .led-aura         { --led-gradient: conic-gradient(from var(--led-angle), #7a00ff, #b366ff, #e0aaff, #7a00ff); }
-  .led-sunset       { --led-gradient: conic-gradient(from var(--led-angle), #ff5e00, #ff2d55, #ff9500, #ffb347, #ff5e00); }
-  .led-ocean        { --led-gradient: conic-gradient(from var(--led-angle), #00b4d8, #0077b6, #48cae4, #90e0ef, #00b4d8); }
-  .led-nebula       { --led-gradient: conic-gradient(from var(--led-angle), #240046, #7b2cbf, #c77dff, #5a189a, #240046); }
-  .led-forest       { --led-gradient: conic-gradient(from var(--led-angle), #2d6a4f, #74c69d, #40916c, #b7e4c7, #2d6a4f); }
-  .led-fire         { --led-gradient: conic-gradient(from var(--led-angle), #ff3d00, #ffab00, #ff6d00, #ffea00, #ff3d00); }
+  /* ---- BASIC tier: 8 solid hues, flowing or static ---- */
+  .led-green  { --led-hue: #22c55e; --led-gradient-flow: conic-gradient(from var(--led-angle), #14532d, #22c55e, #86efac, #22c55e, #14532d); }
+  .led-yellow { --led-hue: #facc15; --led-gradient-flow: conic-gradient(from var(--led-angle), #a16207, #facc15, #fef08a, #facc15, #a16207); }
+  .led-blue   { --led-hue: #3b82f6; --led-gradient-flow: conic-gradient(from var(--led-angle), #1e3a8a, #3b82f6, #93c5fd, #3b82f6, #1e3a8a); }
+  .led-red    { --led-hue: #ef4444; --led-gradient-flow: conic-gradient(from var(--led-angle), #7f1d1d, #ef4444, #fca5a5, #ef4444, #7f1d1d); }
+  .led-cyan   { --led-hue: #06b6d4; --led-gradient-flow: conic-gradient(from var(--led-angle), #164e63, #06b6d4, #a5f3fc, #06b6d4, #164e63); }
+  .led-pink   { --led-hue: #ec4899; --led-gradient-flow: conic-gradient(from var(--led-angle), #831843, #ec4899, #f9a8d4, #ec4899, #831843); }
+  .led-orange { --led-hue: #f97316; --led-gradient-flow: conic-gradient(from var(--led-angle), #7c2d12, #f97316, #fdba74, #f97316, #7c2d12); }
+  .led-purple { --led-hue: #a855f7; --led-gradient-flow: conic-gradient(from var(--led-angle), #4c1d95, #a855f7, #d8b4fe, #a855f7, #4c1d95); }
 
-  /* Static solid tones */
-  .led-cyan    { --led-gradient: #00e5ff; }
-  .led-crimson { --led-gradient: #dc143c; }
-  .led-amber   { --led-gradient: #ffb300; }
-  .led-emerald { --led-gradient: #10b981; }
-  .led-magenta { --led-gradient: #d900ff; }
-  .led-sky     { --led-gradient: #38bdf8; }
-  .led-gold    { --led-gradient: #f5c518; }
-  .led-violet  { --led-gradient: #8b5cf6; }
-  .led-mint    { --led-gradient: #6ee7b7; }
+  .led-green, .led-yellow, .led-blue, .led-red,
+  .led-cyan, .led-pink, .led-orange, .led-purple { --led-gradient: var(--led-hue); }
+
+  /* ---- PRO / TURBO tier: rainbow neon, RGB gradients, multi-colour flows ---- */
+  .led-rainbow-wave { --led-hue: #00d4ff; --led-gradient: conic-gradient(from var(--led-angle), #ff005c, #ff7b00, #ffe600, #00ff88, #00d4ff, #7a00ff, #ff005c); }
+  .led-cyberpunk    { --led-hue: #ff00ea; --led-gradient: conic-gradient(from var(--led-angle), #ff00ea, #00fff0, #ff00ea, #7a00ff, #ff00ea); }
+  .led-aura         { --led-hue: #b366ff; --led-gradient: conic-gradient(from var(--led-angle), #7a00ff, #b366ff, #e0aaff, #7a00ff); }
+  .led-sunset       { --led-hue: #ff5e00; --led-gradient: conic-gradient(from var(--led-angle), #ff5e00, #ff2d55, #ff9500, #ffb347, #ff5e00); }
+  .led-ocean        { --led-hue: #00b4d8; --led-gradient: conic-gradient(from var(--led-angle), #00b4d8, #0077b6, #48cae4, #90e0ef, #00b4d8); }
+  .led-nebula       { --led-hue: #c77dff; --led-gradient: conic-gradient(from var(--led-angle), #240046, #7b2cbf, #c77dff, #5a189a, #240046); }
+  .led-forest       { --led-hue: #74c69d; --led-gradient: conic-gradient(from var(--led-angle), #2d6a4f, #74c69d, #40916c, #b7e4c7, #2d6a4f); }
+  .led-fire         { --led-hue: #ffab00; --led-gradient: conic-gradient(from var(--led-angle), #ff3d00, #ffab00, #ff6d00, #ffea00, #ff3d00); }
 }
 
 @keyframes led-spin {
@@ -351,4 +354,65 @@
   .led-flow { animation: none !important; }
   .led-frame::before { opacity: 0.3; }
 }
+
+/* ==========================================================================
+   AI response text underglow (toggleable in Settings)
+   ========================================================================== */
+
+.ai-underglow { text-shadow: 0 0 10px color-mix(in srgb, var(--led-underglow, #3b82f6) 55%, transparent); }
+
+.led-glow-green  { --led-underglow: #22c55e; }
+.led-glow-yellow { --led-underglow: #facc15; }
+.led-glow-blue   { --led-underglow: #3b82f6; }
+.led-glow-red    { --led-underglow: #ef4444; }
+.led-glow-cyan   { --led-underglow: #06b6d4; }
+.led-glow-pink   { --led-underglow: #ec4899; }
+.led-glow-orange { --led-underglow: #f97316; }
+.led-glow-purple { --led-underglow: #a855f7; }
+.led-glow-rainbow-wave { --led-underglow: #00d4ff; }
+.led-glow-cyberpunk    { --led-underglow: #ff00ea; }
+.led-glow-aura         { --led-underglow: #b366ff; }
+.led-glow-sunset       { --led-underglow: #ff5e00; }
+.led-glow-ocean        { --led-underglow: #00b4d8; }
+.led-glow-nebula       { --led-underglow: #c77dff; }
+.led-glow-forest       { --led-underglow: #74c69d; }
+.led-glow-fire         { --led-underglow: #ffab00; }
+
+/* ==========================================================================
+   AI streaming word reveal — freezes once rendered
+   ========================================================================== */
+
+@keyframes ai-word-in {
+  from { opacity: 0; transform: translateY(4px); filter: blur(2px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+
+.ai-stream-tail {
+  display: inline;
+  animation: ai-word-in 0.28s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-stream-tail { animation: none; }
+}
+
+/* Pulsing AI status indicator */
+@keyframes ai-status-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.85); }
+  50%      { opacity: 1; transform: scale(1); }
+}
+.ai-status-dot { animation: ai-status-pulse 1.1s ease-in-out infinite; }
+
+/* ==========================================================================
+   Automatic holiday themes (accent shifts only — layout untouched)
+   ========================================================================== */
+
+.holiday-christmas  { --accent: 0 72% 45%; }
+.holiday-halloween  { --accent: 25 95% 50%; }
+.holiday-newyear    { --accent: 45 93% 55%; }
+.holiday-valentines { --accent: 340 82% 60%; }
+.holiday-easter     { --accent: 150 60% 50%; }
+.holiday-school     { --accent: 210 90% 55%; }
+.holiday-blackfriday { --accent: 275 85% 60%; }
+
 
