@@ -189,21 +189,106 @@ function SettingsPage() {
                 <Lightbulb className="h-4 w-4 text-primary" /> Screen-edge LED
               </Label>
               <p className="text-xs text-muted-foreground mt-1">
-                Ambient RGB border around the chat workspace.
+                Ambient glow on the outer border of the chat window only.
               </p>
             </div>
             <Switch checked={ledEnabled} onCheckedChange={updateLedEnabled} />
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            Colour customisation is temporarily unavailable — the default neon flow is used.
-          </p>
+          {ledEnabled && (
+            <>
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Basic colours</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {BASIC_PRESETS.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => updatePreset(p.id)}
+                      className={`rounded-xl border p-2 flex flex-col items-center gap-1.5 transition ${
+                        preset === p.id ? "border-accent bg-accent/10" : "border-border hover:bg-muted/40"
+                      }`}
+                    >
+                      <span className="h-5 w-full rounded-md" style={{ background: p.swatch }} />
+                      <span className="text-[11px] font-medium">{p.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                  Pro effects
+                  {!proLed && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold">Pro / Turbo</span>}
+                </p>
+                <div className={`grid grid-cols-4 gap-2 ${proLed ? "" : "opacity-50"}`}>
+                  {PRO_PRESETS.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => (proLed ? updatePreset(p.id) : toast.error("Upgrade to Pro or Turbo to unlock this effect"))}
+                      className={`rounded-xl border p-2 flex flex-col items-center gap-1.5 transition ${
+                        preset === p.id ? "border-accent bg-accent/10" : "border-border hover:bg-muted/40"
+                      }`}
+                    >
+                      <span className="h-5 w-full rounded-md" style={{ background: p.swatch }} />
+                      <span className="text-[11px] font-medium text-center leading-tight">{p.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Motion</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { v: "flow", label: "Flowing (vloeibaar)" },
+                    { v: "static", label: "Static (stilstaand)" },
+                  ] as const).map(({ v, label }) => (
+                    <button
+                      key={v}
+                      onClick={() => updateMotion(v)}
+                      className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                        motion === v ? "border-accent bg-accent/10" : "border-border hover:bg-muted/40"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm">AI text underglow</Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Subtle glow behind AI responses in your LED colour.
+                  </p>
+                </div>
+                <Switch checked={underglow} onCheckedChange={updateUnderglow} />
+              </div>
+            </>
+          )}
+        </section>
+
+        {/* Holiday themes */}
+        <section className="flex items-center justify-between">
+          <div>
+            <Label className="text-base flex items-center gap-2">
+              <PartyPopper className="h-4 w-4 text-accent" /> Holiday themes
+            </Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              {activeEventLabel
+                ? `${activeEventLabel} theme is active right now.`
+                : "Automatically applied during global holidays and events."}
+            </p>
+          </div>
+          <Switch checked={holidayOn} onCheckedChange={updateHoliday} />
         </section>
 
         {/* Referral */}
         <section className="rounded-xl border border-accent/30 bg-gradient-accent/10 p-4">
           <p className="text-sm font-medium text-accent">{REFERRAL_NOTE}</p>
         </section>
+
 
         {/* Legal */}
         <section className="pt-6 border-t border-border">
