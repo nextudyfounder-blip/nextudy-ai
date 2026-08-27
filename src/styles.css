@@ -407,12 +407,12 @@
    Automatic holiday themes (accent shifts only — layout untouched)
    ========================================================================== */
 
-.holiday-christmas  { --accent: 0 72% 45%; }
-.holiday-halloween  { --accent: 25 95% 50%; }
-.holiday-newyear    { --accent: 45 93% 55%; }
-.holiday-valentines { --accent: 340 82% 60%; }
-.holiday-easter     { --accent: 150 60% 50%; }
-.holiday-school     { --accent: 210 90% 55%; }
-.holiday-blackfriday { --accent: 275 85% 60%; }
+.holiday-christmas  { --accent: oklch(0.55 0.21 25);  --ring: oklch(0.55 0.21 25); }
+.holiday-halloween  { --accent: oklch(0.68 0.19 55);  --ring: oklch(0.68 0.19 55); }
+.holiday-newyear    { --accent: oklch(0.8 0.16 90);   --ring: oklch(0.8 0.16 90); }
+.holiday-valentines { --accent: oklch(0.65 0.21 350); --ring: oklch(0.65 0.21 350); }
+.holiday-easter     { --accent: oklch(0.72 0.16 150); --ring: oklch(0.72 0.16 150); }
+.holiday-school     { --accent: oklch(0.6 0.18 250);  --ring: oklch(0.6 0.18 250); }
+.holiday-blackfriday { --accent: oklch(0.6 0.22 300); --ring: oklch(0.6 0.22 300); }
 
 
