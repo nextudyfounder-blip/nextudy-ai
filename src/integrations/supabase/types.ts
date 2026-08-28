@@ -155,6 +155,9 @@ export type Database = {
           onboarding_dismissed: boolean
           plan: string
           preferred_language: string
+          promo_event_id: string | null
+          promo_locked_at: string | null
+          promo_price_cents: number | null
           updated_at: string
           uploads_this_month: number
         }
@@ -170,6 +173,9 @@ export type Database = {
           onboarding_dismissed?: boolean
           plan?: string
           preferred_language?: string
+          promo_event_id?: string | null
+          promo_locked_at?: string | null
+          promo_price_cents?: number | null
           updated_at?: string
           uploads_this_month?: number
         }
@@ -185,6 +191,9 @@ export type Database = {
           onboarding_dismissed?: boolean
           plan?: string
           preferred_language?: string
+          promo_event_id?: string | null
+          promo_locked_at?: string | null
+          promo_price_cents?: number | null
           updated_at?: string
           uploads_this_month?: number
         }

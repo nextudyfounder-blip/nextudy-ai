@@ -57,7 +57,7 @@ export interface CheckoutSession {
 
 /**
  * Create a subscription Checkout Session using dynamic price_data.
- * PRO and TURBO use the current plan pricing (WK DEAL aware).
+ * PRO and TURBO use the current plan pricing (holiday-event discount aware).
  */
 export async function createSubscriptionCheckout(input: {
   tier: "pro" | "teams" | "turbo";
@@ -66,9 +66,11 @@ export async function createSubscriptionCheckout(input: {
   successUrl: string;
   cancelUrl: string;
   metadata?: Record<string, string>;
+  /** Overrides the computed price, e.g. a renewal rate locked during an event. */
+  priceCentsOverride?: number;
 }): Promise<CheckoutSession> {
   const plan = PLANS.find((p) => p.id === (input.tier === "teams" ? "pro" : input.tier))!;
-  const priceCents = Math.round(activePrice(plan) * 100);
+  const priceCents = input.priceCentsOverride ?? Math.round(activePrice(plan) * 100);
   const productName = `Nextudy ${plan.name}`;
   const quantity = input.tier === "pro" ? 1 : Math.max(1, input.seats ?? 1);
 

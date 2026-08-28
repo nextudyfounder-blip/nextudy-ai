@@ -1,6 +1,7 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
+import { HolidayThemeWatcher } from "@/components/HolidayThemeWatcher";
 
 import appCss from "../styles.css?url";
 
@@ -78,6 +79,7 @@ function RootComponent() {
           __html: `(function(){try{var t=localStorage.getItem('nextudy-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`,
         }}
       />
+      <HolidayThemeWatcher />
       <Outlet />
       <Toaster />
     </AuthProvider>

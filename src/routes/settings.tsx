@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles, ArrowLeft, Sun, Moon, Monitor, Trash2, Lightbulb } from "lucide-react";
+import { Sparkles, ArrowLeft, Sun, Moon, Monitor, Trash2, Lightbulb, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -16,8 +16,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useGuest } from "@/hooks/useGuest";
-import { readLedSettings, setLedSettings } from "@/components/chat/LedFrame";
-import { REFERRAL_NOTE } from "@/lib/plans";
+import {
+  readLedSettings, setLedSettings, BASIC_PRESETS, PRO_PRESETS, type LedMotion,
+} from "@/components/chat/LedFrame";
+import { REFERRAL_NOTE, normalizePlan, hasProLed, type PlanId } from "@/lib/plans";
+import {
+  applyHolidayTheme, getActiveEvent, holidayThemeEnabled, setHolidayThemeEnabled,
+} from "@/lib/holidays";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -43,16 +48,43 @@ function SettingsPage() {
   const [style, setStyle] = useState<ResponseStyle>("standard");
   const [clearing, setClearing] = useState(false);
   const [ledEnabled, setLedEnabled] = useState(true);
+  const [preset, setPreset] = useState("blue");
+  const [motion, setMotion] = useState<LedMotion>("flow");
+  const [underglow, setUnderglow] = useState(true);
+  const [plan, setPlan] = useState<PlanId>("basic");
+  const [holidayOn, setHolidayOn] = useState(true);
+  const activeEventLabel = getActiveEvent()?.label ?? null;
+  const proLed = hasProLed(plan);
 
   useEffect(() => {
     const stored = (localStorage.getItem("nextudy-theme") as Theme | null) ?? "system";
     setTheme(stored);
     setEdu((localStorage.getItem("nextudy-edu") as EduLevel | null) ?? "university");
     setStyle((localStorage.getItem("nextudy-style") as ResponseStyle | null) ?? "standard");
-    setLedEnabled(readLedSettings().enabled);
+    const led = readLedSettings();
+    setLedEnabled(led.enabled);
+    setPreset(led.preset);
+    setMotion(led.motion);
+    setUnderglow(led.underglow);
+    setHolidayOn(holidayThemeEnabled());
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle()
+      .then(({ data }) => setPlan(normalizePlan(data?.plan)));
+  }, [user]);
+
   const updateLedEnabled = (v: boolean) => { setLedEnabled(v); setLedSettings({ enabled: v }); };
+  const updatePreset = (v: string) => { setPreset(v); setLedSettings({ preset: v }); };
+  const updateMotion = (v: LedMotion) => { setMotion(v); setLedSettings({ motion: v }); };
+  const updateUnderglow = (v: boolean) => { setUnderglow(v); setLedSettings({ underglow: v }); };
+  const updateHoliday = (v: boolean) => {
+    setHolidayOn(v);
+    setHolidayThemeEnabled(v);
+    applyHolidayTheme();
+  };
+
 
   const updateTheme = (t: Theme) => {
     setTheme(t);
