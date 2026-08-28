@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { createSubscriptionCheckout } from "@/lib/stripe";
+import { PLANS, activePrice } from "@/lib/plans";
+import { getActiveEvent } from "@/lib/holidays";
+
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
