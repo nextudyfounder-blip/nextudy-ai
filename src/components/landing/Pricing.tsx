@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Gift } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
-  PLANS, activePrice, showsDeal, formatEur, REFERRAL_NOTE,
+  PLANS, activePrice, showsDeal, dealLabel, formatEur, REFERRAL_NOTE,
 } from "@/lib/plans";
 
 export function Pricing() {
@@ -43,7 +43,7 @@ export function Pricing() {
                   <h3 className="font-display font-bold text-2xl">{p.name}</h3>
                   {deal && (
                     <span className="rounded-full bg-gradient-accent px-2 py-0.5 text-[10px] font-bold text-white tracking-wide">
-                      WK DEAL
+                      {dealLabel()}
                     </span>
                   )}
                 </div>

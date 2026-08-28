@@ -11,7 +11,7 @@ import { PenLoader } from "@/components/PenLoader";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-  PLANS, activePrice, showsDeal, formatEur, normalizePlan, REFERRAL_NOTE,
+  PLANS, activePrice, showsDeal, dealLabel, formatEur, normalizePlan, REFERRAL_NOTE,
   type PlanId, type PlanDef,
 } from "@/lib/plans";
 
@@ -133,7 +133,7 @@ function PlanCard({
             {plan.name}
             {deal && (
               <span className="rounded-full bg-gradient-accent px-2 py-0.5 text-[10px] font-bold text-accent-foreground tracking-wide">
-                WK DEAL
+                {dealLabel()}
               </span>
             )}
           </div>
