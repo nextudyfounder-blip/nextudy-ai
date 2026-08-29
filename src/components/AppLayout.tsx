@@ -1,5 +1,5 @@
 import { ReactNode, useEffect } from "react";
-import { useNavigate, Link, useRouterState } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useGuest } from "@/hooks/useGuest";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -24,7 +24,6 @@ export function AppLayout({ children, title, hideSidebar = false }: Props) {
   const { user, loading } = useAuth();
   const guest = useGuest();
   const navigate = useNavigate();
-  const path = useRouterState({ select: (r) => r.location.pathname });
 
   useEffect(() => {
     if (!loading && !user && !guest) navigate({ to: "/auth" });
