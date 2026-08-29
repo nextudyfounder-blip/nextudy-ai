@@ -95,6 +95,18 @@ function SubscriptionsPage() {
           ))}
         </div>
 
+        {currentPlan !== "basic" && (
+          <div className="mt-10 rounded-xl border border-border p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium">Manage auto-renewal</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Keep full {currentPlan === "turbo" ? "Turbo" : "Pro"} access until your paid period ends, then move to Basic automatically.
+              </p>
+            </div>
+            <CancelSubscription />
+          </div>
+        )}
+
         <p className="text-center text-xs text-muted-foreground mt-10 flex items-center justify-center gap-1.5">
           <InfinityIcon className="h-3.5 w-3.5" /> Every tier: unlimited chat & uploads. Cancel anytime.
         </p>
