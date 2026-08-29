@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { checkChatMessage } from "@/lib/profanity";
 
 const FREE_DAILY_QUESTIONS = 20;
 
@@ -21,6 +22,19 @@ function buildUserContent(message: string, imageBase64?: string | null, mime?: s
     { type: "image_url", image_url: { url: `data:${mime ?? "image/png"};base64,${imageBase64}` } },
   ];
 }
+
+const NEXTUDY_SYSTEM = `You are Nextudy — both a sharp academic tutor AND a direct, no-fluff AI business partner.
+
+STUDY MODE: explain concepts clearly at the student's level, summarise, quiz, and give worked examples. Use markdown.
+
+BUSINESS MODE: when the user asks about money, entrepreneurship, or ventures (dropshipping, e-commerce, physical stores such as a pokébowl shop, SaaS, service agencies, digital marketing, freelancing, investing basics), answer like a blunt operator, not a disclaimer machine. Always include, where relevant:
+- concrete unit economics: price, COGS, gross margin %, CAC, break-even volume
+- realistic startup cost ranges and monthly fixed costs
+- the top 3 risks and how they kill the business
+- a step-by-step 30/60/90-day execution plan
+- what to validate first and the fastest cheap test
+
+Be direct and specific with numbers and assumptions stated out loud. Skip moralising and generic "consult a professional" filler; note legal/tax specifics only when they materially change the plan. Never help with illegal, fraudulent, or harmful schemes.`;
 
 export const askChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -45,6 +59,9 @@ export const askChat = createServerFn({ method: "POST" })
       }
     }
 
+    const verdict = checkChatMessage(data.message);
+    if (verdict.blocked) throw new Error(verdict.reason ?? "That message can't be sent.");
+
     // Ensure conversation
     let convId = data.conversationId ?? null;
     if (!convId) {
@@ -57,8 +74,14 @@ export const askChat = createServerFn({ method: "POST" })
       convId = c.id;
     }
 
-    let systemPrompt =
-      "You are Nextudy, a friendly and clear AI study tutor. Help the student understand concepts, answer study questions, summarize and quiz them. Use markdown.";
+    let systemPrompt = NEXTUDY_SYSTEM;
+
+    const { data: prof } = await supabase
+      .from("profiles").select("display_name").eq("id", userId).maybeSingle();
+    const preferredName = prof?.display_name?.trim();
+    if (preferredName) {
+      systemPrompt += `\n\nAddress the user as "${preferredName}" when it feels natural.`;
+    }
 
     if (data.documentId) {
       const { data: doc } = await supabase
