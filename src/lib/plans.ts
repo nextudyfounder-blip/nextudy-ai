@@ -79,7 +79,8 @@ export function formatEur(amount: number): string {
   return `€${amount % 1 === 0 ? amount.toFixed(0) : amount.toFixed(2)}`;
 }
 
-export const REFERRAL_NOTE = "Invite friends to get €1.50 off your first month!";
+export const REFERRAL_NOTE = "Invite friends to get €1.00 off your first month!";
+export const REFERRAL_DISCOUNT_EUR = 1;
 
 /** Normalizes any legacy plan value from the database to the current three tiers. */
 export function normalizePlan(value?: string | null): PlanId {
