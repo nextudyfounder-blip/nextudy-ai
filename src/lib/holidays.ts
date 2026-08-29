@@ -121,14 +121,14 @@ export function getActiveEvent(now: Date = new Date()): HolidayEvent | null {
   return all.find((e) => now >= e.start && now < e.end) ?? null;
 }
 
-/** Flat recurring discounts applied automatically while an event is active. */
-export const EVENT_DISCOUNTS: Record<string, number> = {
-  pro: 1.5,
-  turbo: 2,
-};
+/**
+ * Seasonal/event discounting is retired — plans are always at their standard rate.
+ * Holiday windows now only drive the optional visual theme.
+ */
+export const EVENT_DISCOUNTS: Record<string, number> = {};
 
-export function eventDiscountFor(planId: string, now: Date = new Date()): number {
-  return getActiveEvent(now) ? (EVENT_DISCOUNTS[planId] ?? 0) : 0;
+export function eventDiscountFor(_planId: string, _now: Date = new Date()): number {
+  return 0;
 }
 
 export const HOLIDAY_THEME_STORAGE = {
