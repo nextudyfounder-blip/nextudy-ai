@@ -8,6 +8,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, Sparkles, Zap, Crown, Infinity as InfinityIcon, Gift } from "lucide-react";
 import { PenLoader } from "@/components/PenLoader";
+import { CancelSubscription } from "@/components/CancelSubscription";
+import { useServerFn } from "@tanstack/react-start";
+import { syncMyPlan } from "@/lib/subscription.functions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -38,11 +41,17 @@ function SubscriptionsPage() {
   const [currentPlan, setCurrentPlan] = useState<PlanId>("basic");
   const [loadingTier, setLoadingTier] = useState<PlanId | null>(null);
 
+  const syncFn = useServerFn(syncMyPlan);
+
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle()
       .then(({ data }) => setCurrentPlan(normalizePlan(data?.plan)));
-  }, [user]);
+    // Re-evaluate against the payment provider so expired plans drop to Basic.
+    void (syncFn() as Promise<{ plan: string }>)
+      .then((r) => setCurrentPlan(normalizePlan(r.plan)))
+      .catch(() => undefined);
+  }, [user, syncFn]);
 
   const checkout = async (tier: "pro" | "turbo") => {
     if (!user) {
