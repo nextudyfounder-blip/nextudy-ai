@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Gift } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import {
-  PLANS, activePrice, showsDeal, dealLabel, formatEur, REFERRAL_NOTE,
-} from "@/lib/plans";
+import { PLANS, activePrice, formatEur, REFERRAL_NOTE } from "@/lib/plans";
 
 export function Pricing() {
   return (
@@ -22,7 +20,6 @@ export function Pricing() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {PLANS.map((p) => {
-            const deal = showsDeal(p);
             const price = activePrice(p);
             const highlight = p.id === "pro";
             return (
@@ -41,21 +38,11 @@ export function Pricing() {
                 )}
                 <div className="flex items-center gap-2">
                   <h3 className="font-display font-bold text-2xl">{p.name}</h3>
-                  {deal && (
-                    <span className="rounded-full bg-gradient-accent px-2 py-0.5 text-[10px] font-bold text-white tracking-wide">
-                      {dealLabel()}
-                    </span>
-                  )}
                 </div>
                 <p className={`text-sm mt-1 ${highlight ? "text-white/70" : "text-muted-foreground"}`}>{p.tagline}</p>
                 <div className="mt-6 flex items-baseline gap-2">
                   <span className="text-5xl font-bold">{formatEur(price)}</span>
                   <span className={highlight ? "text-white/60" : "text-muted-foreground"}>/mo</span>
-                  {deal && (
-                    <span className={`text-sm line-through ${highlight ? "text-white/50" : "text-muted-foreground"}`}>
-                      {formatEur(p.price)}
-                    </span>
-                  )}
                 </div>
                 <Button
                   asChild

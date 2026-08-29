@@ -11,7 +11,7 @@ import { PenLoader } from "@/components/PenLoader";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-  PLANS, activePrice, showsDeal, dealLabel, formatEur, normalizePlan, REFERRAL_NOTE,
+  PLANS, activePrice, formatEur, normalizePlan, REFERRAL_NOTE,
   type PlanId, type PlanDef,
 } from "@/lib/plans";
 
@@ -131,11 +131,6 @@ function PlanCard({
         <div>
           <div className="font-display text-lg font-bold flex items-center gap-2">
             {plan.name}
-            {deal && (
-              <span className="rounded-full bg-gradient-accent px-2 py-0.5 text-[10px] font-bold text-accent-foreground tracking-wide">
-                {dealLabel()}
-              </span>
-            )}
           </div>
           <div className="text-xs text-muted-foreground">{plan.tagline}</div>
         </div>
@@ -144,9 +139,6 @@ function PlanCard({
       <div className="flex items-baseline gap-2">
         <span className="text-4xl font-bold">{formatEur(price)}</span>
         <span className="text-base font-normal text-muted-foreground">/mo</span>
-        {deal && (
-          <span className="text-sm text-muted-foreground line-through">{formatEur(plan.price)}</span>
-        )}
       </div>
 
       <ul className="space-y-2 text-sm flex-1">
