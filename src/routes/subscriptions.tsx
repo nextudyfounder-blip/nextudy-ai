@@ -106,7 +106,6 @@ function SubscriptionsPage() {
 function PlanCard({
   plan, current, loading, onClick,
 }: { plan: PlanDef; current: boolean; loading?: boolean; onClick: () => void }) {
-  const deal = showsDeal(plan);
   const price = activePrice(plan);
   const highlight = plan.id === "pro";
 
