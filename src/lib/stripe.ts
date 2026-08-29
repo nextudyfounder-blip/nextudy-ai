@@ -50,6 +50,53 @@ export async function stripeRequest<T = unknown>(path: string, form: Record<stri
   return body as T;
 }
 
+async function stripeGet<T = unknown>(path: string): Promise<T> {
+  const res = await fetch(`${STRIPE_BASE}${path}`, {
+    headers: { Authorization: `Bearer ${secretKey()}` },
+  });
+  const body = await res.json();
+  if (!res.ok) {
+    console.error("[stripe] get failed", res.status, body);
+    throw new Error((body as any)?.error?.message || `Stripe error ${res.status}`);
+  }
+  return body as T;
+}
+
+export interface CancelResult {
+  cancelled: boolean;
+  /** Unix seconds when access ends, when known. */
+  periodEnd?: number;
+}
+
+/**
+ * Cancels every active subscription for this email at the end of the paid period.
+ * Users keep full access until then, after which no further charges occur.
+ */
+export async function cancelSubscriptionsForEmail(email: string): Promise<CancelResult> {
+  const customers = await stripeGet<{ data: Array<{ id: string }> }>(
+    `/customers?email=${encodeURIComponent(email)}&limit=10`,
+  );
+  let cancelled = false;
+  let periodEnd: number | undefined;
+
+  for (const customer of customers.data) {
+    const subs = await stripeGet<{
+      data: Array<{ id: string; status: string; current_period_end: number; cancel_at_period_end: boolean }>;
+    }>(`/subscriptions?customer=${customer.id}&status=all&limit=20`);
+
+    for (const sub of subs.data) {
+      if (!["active", "trialing", "past_due"].includes(sub.status)) continue;
+      if (!sub.cancel_at_period_end) {
+        await stripeRequest(`/subscriptions/${sub.id}`, { cancel_at_period_end: true });
+      }
+      cancelled = true;
+      if (!periodEnd || sub.current_period_end > periodEnd) periodEnd = sub.current_period_end;
+    }
+  }
+
+  return { cancelled, periodEnd };
+}
+
 export interface CheckoutSession {
   id: string;
   url: string | null;
