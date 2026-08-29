@@ -189,8 +189,7 @@
 
   /* Glassmorphism surface */
   .glass-panel {
-    background: color-mix(in oklab, var(--card) 60%, transparent);
-    backdrop-filter: blur(18px) saturate(140%);
+    background: var(--card);
     border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
   }
 
@@ -202,7 +201,6 @@
       radial-gradient(at 65% 82%, oklch(0.45 0.22 300 / 0.28) 0px, transparent 50%),
       radial-gradient(at 20% 85%, oklch(0.22 0.14 265 / 0.35) 0px, transparent 50%);
     background-size: 200% 200%;
-    animation: mesh-drift 22s ease-in-out infinite alternate;
   }
 
   /* Page enter (staggered slide-up) */
@@ -227,12 +225,6 @@
       inset 0 0 12px oklch(0.6 0.22 295 / 0.35);
   }
   .pulse-soft { animation: pulse-soft 1.8s ease-in-out infinite; }
-}
-
-@keyframes mesh-drift {
-  0%   { background-position: 0% 0%; }
-  50%  { background-position: 100% 30%; }
-  100% { background-position: 20% 100%; }
 }
 
 @keyframes page-enter {
@@ -290,25 +282,16 @@
     --led-gradient: conic-gradient(from var(--led-angle),
       #ff005c, #ff7b00, #ffe600, #00ff88, #00d4ff, #7a00ff, #ff005c);
   }
-  .led-frame::before,
   .led-frame::after {
     content: "";
     position: absolute;
     border-radius: inherit;
     pointer-events: none;
   }
-  /* Outer soft ambient glow */
-  .led-frame::before {
-    inset: -8px;
-    background: var(--led-gradient);
-    filter: blur(18px);
-    opacity: 0.55;
-    z-index: -1;
-  }
-  /* Crisp perimeter line */
+  /* Crisp perimeter line — the only LED render (no glow, no inner wash) */
   .led-frame::after {
     inset: 0;
-    padding: 2px;
+    padding: 1.5px;
     background: var(--led-gradient);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
@@ -346,13 +329,11 @@
   to { --led-angle: 360deg; }
 }
 
-/* Accessibility: calm the LED border when reduced motion is preferred */
-.led-reduced::before { filter: blur(10px); opacity: 0.3; }
+/* Accessibility: freeze the LED border when reduced motion is preferred */
 .led-reduced { animation: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
   .led-flow { animation: none !important; }
-  .led-frame::before { opacity: 0.3; }
 }
 
 /* ==========================================================================
