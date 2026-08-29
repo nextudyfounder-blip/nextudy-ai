@@ -97,6 +97,35 @@ export async function cancelSubscriptionsForEmail(email: string): Promise<Cancel
   return { cancelled, periodEnd };
 }
 
+export interface SubscriptionStatus {
+  active: boolean;
+  cancelAtPeriodEnd: boolean;
+  periodEnd?: number;
+}
+
+/** Current paid-access status for an email across all matching Stripe customers. */
+export async function stripeSubscriptionStatusForEmail(email: string): Promise<SubscriptionStatus> {
+  const customers = await stripeGet<{ data: Array<{ id: string }> }>(
+    `/customers?email=${encodeURIComponent(email)}&limit=10`,
+  );
+  let status: SubscriptionStatus = { active: false, cancelAtPeriodEnd: false };
+
+  for (const customer of customers.data) {
+    const subs = await stripeGet<{
+      data: Array<{ status: string; current_period_end: number; cancel_at_period_end: boolean }>;
+    }>(`/subscriptions?customer=${customer.id}&status=all&limit=20`);
+    for (const sub of subs.data) {
+      if (!["active", "trialing", "past_due"].includes(sub.status)) continue;
+      status = {
+        active: true,
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
+        periodEnd: sub.current_period_end,
+      };
+    }
+  }
+  return status;
+}
+
 export interface CheckoutSession {
   id: string;
   url: string | null;
