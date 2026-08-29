@@ -8,10 +8,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, Sparkles, Zap, Crown, Infinity as InfinityIcon, Gift } from "lucide-react";
 import { PenLoader } from "@/components/PenLoader";
+import { CancelSubscription } from "@/components/CancelSubscription";
+import { useServerFn } from "@tanstack/react-start";
+import { syncMyPlan } from "@/lib/subscription.functions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-  PLANS, activePrice, showsDeal, dealLabel, formatEur, normalizePlan, REFERRAL_NOTE,
+  PLANS, activePrice, formatEur, normalizePlan, REFERRAL_NOTE,
   type PlanId, type PlanDef,
 } from "@/lib/plans";
 
@@ -38,11 +41,17 @@ function SubscriptionsPage() {
   const [currentPlan, setCurrentPlan] = useState<PlanId>("basic");
   const [loadingTier, setLoadingTier] = useState<PlanId | null>(null);
 
+  const syncFn = useServerFn(syncMyPlan);
+
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle()
       .then(({ data }) => setCurrentPlan(normalizePlan(data?.plan)));
-  }, [user]);
+    // Re-evaluate against the payment provider so expired plans drop to Basic.
+    void (syncFn() as Promise<{ plan: string }>)
+      .then((r) => setCurrentPlan(normalizePlan(r.plan)))
+      .catch(() => undefined);
+  }, [user, syncFn]);
 
   const checkout = async (tier: "pro" | "turbo") => {
     if (!user) {
@@ -95,6 +104,18 @@ function SubscriptionsPage() {
           ))}
         </div>
 
+        {currentPlan !== "basic" && (
+          <div className="mt-10 rounded-xl border border-border p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium">Manage auto-renewal</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Keep full {currentPlan === "turbo" ? "Turbo" : "Pro"} access until your paid period ends, then move to Basic automatically.
+              </p>
+            </div>
+            <CancelSubscription />
+          </div>
+        )}
+
         <p className="text-center text-xs text-muted-foreground mt-10 flex items-center justify-center gap-1.5">
           <InfinityIcon className="h-3.5 w-3.5" /> Every tier: unlimited chat & uploads. Cancel anytime.
         </p>
@@ -106,7 +127,6 @@ function SubscriptionsPage() {
 function PlanCard({
   plan, current, loading, onClick,
 }: { plan: PlanDef; current: boolean; loading?: boolean; onClick: () => void }) {
-  const deal = showsDeal(plan);
   const price = activePrice(plan);
   const highlight = plan.id === "pro";
 
@@ -131,11 +151,6 @@ function PlanCard({
         <div>
           <div className="font-display text-lg font-bold flex items-center gap-2">
             {plan.name}
-            {deal && (
-              <span className="rounded-full bg-gradient-accent px-2 py-0.5 text-[10px] font-bold text-accent-foreground tracking-wide">
-                {dealLabel()}
-              </span>
-            )}
           </div>
           <div className="text-xs text-muted-foreground">{plan.tagline}</div>
         </div>
@@ -144,9 +159,6 @@ function PlanCard({
       <div className="flex items-baseline gap-2">
         <span className="text-4xl font-bold">{formatEur(price)}</span>
         <span className="text-base font-normal text-muted-foreground">/mo</span>
-        {deal && (
-          <span className="text-sm text-muted-foreground line-through">{formatEur(plan.price)}</span>
-        )}
       </div>
 
       <ul className="space-y-2 text-sm flex-1">

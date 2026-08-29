@@ -66,21 +66,21 @@ export function activePrice(plan: PlanDef, now: Date = new Date()): number {
   return Math.max(0, Math.round((plan.price - discount) * 100) / 100);
 }
 
-export function showsDeal(plan: PlanDef, now: Date = new Date()): boolean {
-  return plan.price > 0 && eventDiscountFor(plan.id, now) > 0;
+/** Seasonal deals are retired — no promo badges anywhere. */
+export function showsDeal(_plan: PlanDef, _now: Date = new Date()): boolean {
+  return false;
 }
 
-/** Promo label shown on discounted plans, e.g. "BLACK FRIDAY DEAL". */
-export function dealLabel(now: Date = new Date()): string | null {
-  const event = getActiveEvent(now);
-  return event ? `${event.label.toUpperCase()} DEAL` : null;
+export function dealLabel(_now: Date = new Date()): string | null {
+  return null;
 }
 
 export function formatEur(amount: number): string {
   return `€${amount % 1 === 0 ? amount.toFixed(0) : amount.toFixed(2)}`;
 }
 
-export const REFERRAL_NOTE = "Invite friends to get €1.50 off your first month!";
+export const REFERRAL_NOTE = "Invite friends to get €1.00 off your first month!";
+export const REFERRAL_DISCOUNT_EUR = 1;
 
 /** Normalizes any legacy plan value from the database to the current three tiers. */
 export function normalizePlan(value?: string | null): PlanId {
