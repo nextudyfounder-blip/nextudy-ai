@@ -4,6 +4,9 @@ import { Sparkles, ArrowLeft, Sun, Moon, Monitor, Trash2, Lightbulb, PartyPopper
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { CancelSubscription } from "@/components/CancelSubscription";
+import { checkPreferredName } from "@/lib/profanity";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -53,6 +56,8 @@ function SettingsPage() {
   const [underglow, setUnderglow] = useState(true);
   const [plan, setPlan] = useState<PlanId>("basic");
   const [holidayOn, setHolidayOn] = useState(true);
+  const [displayName, setDisplayName] = useState("");
+  const [savingName, setSavingName] = useState(false);
   const activeEventLabel = getActiveEvent()?.label ?? null;
   const proLed = hasProLed(plan);
 
@@ -71,8 +76,11 @@ function SettingsPage() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle()
-      .then(({ data }) => setPlan(normalizePlan(data?.plan)));
+    supabase.from("profiles").select("plan, display_name").eq("id", user.id).maybeSingle()
+      .then(({ data }) => {
+        setPlan(normalizePlan(data?.plan));
+        setDisplayName(data?.display_name ?? "");
+      });
   }, [user]);
 
   const updateLedEnabled = (v: boolean) => { setLedEnabled(v); setLedSettings({ enabled: v }); };
@@ -93,6 +101,20 @@ function SettingsPage() {
   };
   const updateEdu = (v: EduLevel) => { setEdu(v); localStorage.setItem("nextudy-edu", v); toast.success("Preference saved"); };
   const updateStyle = (v: ResponseStyle) => { setStyle(v); localStorage.setItem("nextudy-style", v); toast.success("Preference saved"); };
+
+  const saveName = async () => {
+    if (!user) return;
+    const verdict = checkPreferredName(displayName);
+    if (verdict.blocked) {
+      toast.error(verdict.reason ?? "Please choose another name");
+      return;
+    }
+    setSavingName(true);
+    const { error } = await supabase
+      .from("profiles").update({ display_name: displayName.trim() }).eq("id", user.id);
+    setSavingName(false);
+    toast[error ? "error" : "success"](error ? "Could not save name" : "Name saved");
+  };
 
   const clearHistory = async () => {
     if (guest || !user) {
@@ -185,6 +207,36 @@ function SettingsPage() {
             </SelectContent>
           </Select>
         </section>
+
+        {/* Preferred name */}
+        <section className="space-y-3">
+          <Label className="text-base">How the AI calls you</Label>
+          <p className="text-xs text-muted-foreground">Nextudy uses this name in greetings and answers.</p>
+          <div className="flex gap-2">
+            <Input
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Your preferred name"
+              maxLength={32}
+              disabled={!user}
+            />
+            <Button onClick={saveName} disabled={savingName || !user}>
+              {savingName ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </section>
+
+        {/* Subscription */}
+        {plan !== "basic" && (
+          <section className="space-y-3">
+            <Label className="text-base">Subscription</Label>
+            <p className="text-xs text-muted-foreground">
+              Cancelling stops auto-renewal. You keep full {plan === "turbo" ? "Turbo" : "Pro"} access until
+              your paid period ends, then your account switches to the free Basic plan.
+            </p>
+            <CancelSubscription />
+          </section>
+        )}
 
         {/* Chat history */}
         <section className="space-y-3">
