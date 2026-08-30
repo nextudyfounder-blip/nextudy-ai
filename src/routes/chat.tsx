@@ -767,7 +767,7 @@ function ChatPage() {
                       />
                       <button
                         onClick={() => setPendingImage(null)}
-                        className="absolute -top-1.5 -right-1.5 h-5 w-5 grid place-items-center rounded-full bg-foreground text-background shadow opacity-0 group-hover:opacity-100 transition"
+                        className="absolute -top-1.5 -right-1.5 h-5 w-5 grid place-items-center rounded-full bg-foreground text-background shadow transition hover:scale-110"
                         title="Remove"
                       >
                         <X className="h-3 w-3" />
