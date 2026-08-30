@@ -3,7 +3,6 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { createSubscriptionCheckout } from "@/lib/stripe";
 import { PLANS, activePrice } from "@/lib/plans";
-import { getActiveEvent } from "@/lib/holidays";
 
 
 const CORS = {
@@ -64,8 +63,6 @@ export const Route = createFileRoute("/api/public/create-checkout")({
             metadata: {
               user_id: userData.user.id,
               tier,
-              promo_event: event?.id ?? "none",
-              locked_price_cents: String(priceCents),
             },
           });
 
