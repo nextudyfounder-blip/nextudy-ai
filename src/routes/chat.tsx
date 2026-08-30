@@ -668,6 +668,25 @@ function ChatPage() {
                       </button>
                     </div>
                   )}
+
+                  <div className="mx-auto mt-8 grid gap-2 sm:grid-cols-2 max-w-2xl text-left">
+                    {[
+                      "Summarise my lecture notes into exam-ready bullets",
+                      "Quiz me with 10 practice questions on this chapter",
+                      "Build a dropshipping plan: margins, CAC and break-even",
+                      "Unit economics for a pokébowl store — costs, margin, risks",
+                      "90-day launch plan for a SaaS side project",
+                      "How do I price a digital marketing agency retainer?",
+                    ].map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setInput(s)}
+                        className="rounded-xl border border-border px-3 py-2.5 text-sm hover:bg-muted/50 transition"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
