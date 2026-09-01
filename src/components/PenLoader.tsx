@@ -1,4 +1,3 @@
-import { PenLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -9,14 +8,14 @@ interface Props {
 }
 
 const SIZE = {
-  sm: { ring: 32, pen: 12, radius: 12, gap: "gap-2", text: "text-xs" },
-  md: { ring: 56, pen: 18, radius: 22, gap: "gap-3", text: "text-sm" },
-  lg: { ring: 96, pen: 26, radius: 40, gap: "gap-4", text: "text-base" },
+  sm: { box: 24, gap: "gap-2", text: "text-xs" },
+  md: { box: 40, gap: "gap-3", text: "text-sm" },
+  lg: { box: 64, gap: "gap-4", text: "text-base" },
 };
 
 /**
- * Academic spinning-pen loader: a stylized pen orbits inside a glowing
- * neon-purple ring, trailing a fading gradient arc.
+ * Rotating pencil circle loader — a pencil traces a circular track.
+ * Pure CSS/SVG, no glow or neon: the app's single loading indicator.
  */
 export function PenLoader({ label, size = "md", className, inline = false }: Props) {
   const s = SIZE[size];
@@ -26,49 +25,51 @@ export function PenLoader({ label, size = "md", className, inline = false }: Pro
 
   return (
     <div className={containerCls} role="status" aria-live="polite">
-      <div
-        className="relative pen-ring-glow rounded-full"
-        style={{ width: s.ring, height: s.ring }}
+      <svg
+        width={s.box}
+        height={s.box}
+        viewBox="0 0 48 48"
+        className="pencil-loader"
+        aria-hidden
       >
-        {/* neon ring track */}
-        <div
-          className="absolute inset-0 rounded-full border-2 border-transparent"
-          style={{
-            borderTopColor: "oklch(0.65 0.22 295)",
-            borderRightColor: "oklch(0.55 0.22 295 / 0.35)",
-          }}
+        {/* circular track */}
+        <circle
+          cx="24"
+          cy="24"
+          r="19"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="text-border"
         />
-        {/* fading trail arc */}
-        <div
-          className="absolute inset-0 rounded-full pen-orbit"
-          style={{
-            background: `conic-gradient(from 0deg,
-              oklch(0.65 0.22 295 / 0.55) 0deg,
-              oklch(0.65 0.22 295 / 0) 220deg,
-              oklch(0.65 0.22 295 / 0) 360deg)`,
-            WebkitMask: "radial-gradient(circle, transparent 55%, black 58%)",
-            mask: "radial-gradient(circle, transparent 55%, black 58%)",
-          }}
-        />
-        {/* orbiting pen */}
-        <div className="absolute inset-0 pen-orbit">
-          <div
-            className="absolute left-1/2 -translate-x-1/2 grid place-items-center rounded-full bg-gradient-to-br from-fuchsia-400 to-violet-600 shadow-[0_0_12px_oklch(0.6_0.22_295/0.7)]"
-            style={{
-              top: 2,
-              width: s.pen + 4,
-              height: s.pen + 4,
-            }}
-          >
-            <PenLine
-              className="text-white -rotate-45"
-              style={{ width: s.pen - 2, height: s.pen - 2 }}
+        {/* traced arc + pencil, rotating together */}
+        <g className="pencil-loader-spin">
+          <circle
+            cx="24"
+            cy="24"
+            r="19"
+            fill="none"
+            stroke="var(--realm-accent, currentColor)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeDasharray="34 86"
+          />
+          {/* pencil body pointing along the track */}
+          <g transform="translate(24 5) rotate(45)">
+            <rect
+              x="-1.9"
+              y="-7"
+              width="3.8"
+              height="10"
+              rx="0.8"
+              fill="var(--realm-accent, currentColor)"
             />
-          </div>
-        </div>
-      </div>
+            <path d="M-1.9 3 L1.9 3 L0 6.4 Z" fill="currentColor" className="text-foreground" />
+          </g>
+        </g>
+      </svg>
       {label && (
-        <span className={cn("pulse-soft text-muted-foreground font-medium tracking-wide", s.text)}>
+        <span className={cn("text-muted-foreground font-medium tracking-wide", s.text)}>
           {label}
         </span>
       )}
