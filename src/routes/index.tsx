@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/landing/Navbar";
 import { Hero } from "@/components/landing/Hero";
-import { Features } from "@/components/landing/Features";
-import { Pricing } from "@/components/landing/Pricing";
 import { Footer } from "@/components/landing/Footer";
-import { RevealOnScroll } from "@/components/RevealOnScroll";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -14,10 +11,10 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "AI-powered study companion: PDF & photo summaries, flashcards, mindmaps, AI chat and practice questions for students. Free plan available.",
+          "Nextudy turns your PDFs and photos into instant AI summaries, answers and practice — one calm workspace for students.",
       },
       { property: "og:title", content: "Nextudy — Study less. Know more." },
-      { property: "og:description", content: "Turn PDFs and photos into summaries, flashcards and AI chat answers." },
+      { property: "og:description", content: "Upload a PDF or photo, get an instant AI summary and learn faster." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -29,8 +26,6 @@ function Index() {
     <main className="min-h-screen">
       <Navbar />
       <Hero />
-      <RevealOnScroll><Features /></RevealOnScroll>
-      <RevealOnScroll><Pricing /></RevealOnScroll>
       <Footer />
     </main>
   );

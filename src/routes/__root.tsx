@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
 import { HolidayThemeWatcher } from "@/components/HolidayThemeWatcher";
+import { RealmProvider } from "@/lib/realm";
 
 import appCss from "../styles.css?url";
 
@@ -76,12 +77,14 @@ function RootComponent() {
     <AuthProvider>
       <script
         dangerouslySetInnerHTML={{
-          __html: `(function(){try{var t=localStorage.getItem('nextudy-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`,
+          __html: `(function(){try{var t=localStorage.getItem('nextudy-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);var r=localStorage.getItem('nextudy-realm')==='vanguard'?'vanguard':'mentor';document.documentElement.classList.add('realm-'+r);}catch(e){}})();`,
         }}
       />
-      <HolidayThemeWatcher />
-      <Outlet />
-      <Toaster />
+      <RealmProvider>
+        <HolidayThemeWatcher />
+        <Outlet />
+        <Toaster />
+      </RealmProvider>
     </AuthProvider>
   );
 }

@@ -33,9 +33,7 @@ export function Navbar() {
           )}
           {isLanding && (
             <>
-              <a href="#features" className="hover:text-foreground transition-colors">Features</a>
               <a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a>
-              <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
             </>
           )}
           <Link to="/whats-new" className="hover:text-foreground transition-colors">What's new</Link>

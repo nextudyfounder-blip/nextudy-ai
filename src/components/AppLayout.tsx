@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { PenLoader } from "@/components/PenLoader";
 import { PreferredNameDialog } from "@/components/PreferredNameDialog";
+import { RealmSwitcher } from "@/components/RealmSwitcher";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -57,6 +58,7 @@ export function AppLayout({ children, title, hideSidebar = false }: Props) {
           </Button>
           {title && <h1 className="font-display font-semibold truncate ml-1">{title}</h1>}
           <div className="ml-auto flex items-center gap-1.5">
+            <RealmSwitcher />
             <Button
               size="sm"
               onClick={() => navigate({ to: "/subscriptions" })}

@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AiMessage, AiStatusIndicator } from "@/components/chat/AiMessage";
-import { LedFrame } from "@/components/chat/LedFrame";
+import { ChatFrame } from "@/components/chat/ChatFrame";
 import { MOTIVATIONS } from "@/components/chat/motivations";
 import {
   Send, Plus, Loader2, Sparkles, Paperclip, X, Mic, MicOff,
@@ -628,9 +628,9 @@ function ChatPage() {
         )}
 
 
-        {/* Main chat wrapped in RGB LED frame */}
+        {/* Main chat wrapped in the realm accent frame */}
         <div className="flex-1 flex min-w-0 p-3 sm:p-4">
-        <LedFrame className="flex-1 flex flex-col min-w-0 relative bg-background overflow-hidden">
+        <ChatFrame className="flex-1 flex flex-col min-w-0 relative bg-background overflow-hidden">
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-6 pb-40">
             <div className="max-w-3xl mx-auto space-y-6">
               {messages.length === 0 && !busy && (
@@ -807,7 +807,7 @@ function ChatPage() {
 
               <form
                 onSubmit={(e) => { e.preventDefault(); send(input); }}
-                className="rounded-[28px] border border-border bg-card shadow-elegant px-2 py-2 focus-within:border-primary/40 focus-within:shadow-glow transition-all"
+                className="rounded-[28px] border border-border bg-card shadow-elegant px-2 py-2 focus-within:border-[color:var(--realm-accent)] transition-all"
               >
                 <input ref={fileRef} type="file" accept={guest ? "image/*" : "application/pdf,image/*"} className="hidden" onChange={onFile} />
 
@@ -914,7 +914,7 @@ function ChatPage() {
               </form>
             </div>
           </div>
-        </LedFrame>
+        </ChatFrame>
         </div>
       </div>
 

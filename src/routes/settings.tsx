@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles, ArrowLeft, Sun, Moon, Monitor, Trash2, Lightbulb, PartyPopper } from "lucide-react";
+import { Sparkles, ArrowLeft, Sun, Moon, Monitor, Trash2, Mountain, Gem, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -19,10 +19,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useGuest } from "@/hooks/useGuest";
-import {
-  readLedSettings, setLedSettings, BASIC_PRESETS, PRO_PRESETS, type LedMotion,
-} from "@/components/chat/LedFrame";
-import { REFERRAL_NOTE, normalizePlan, hasProLed, type PlanId } from "@/lib/plans";
+import { REALM_META, useRealm, type Realm } from "@/lib/realm";
+import { REFERRAL_NOTE, normalizePlan, type PlanId } from "@/lib/plans";
 import {
   applyHolidayTheme, getActiveEvent, holidayThemeEnabled, setHolidayThemeEnabled,
 } from "@/lib/holidays";
@@ -50,27 +48,18 @@ function SettingsPage() {
   const [edu, setEdu] = useState<EduLevel>("university");
   const [style, setStyle] = useState<ResponseStyle>("standard");
   const [clearing, setClearing] = useState(false);
-  const [ledEnabled, setLedEnabled] = useState(true);
-  const [preset, setPreset] = useState("blue");
-  const [motion, setMotion] = useState<LedMotion>("flow");
-  const [underglow, setUnderglow] = useState(true);
   const [plan, setPlan] = useState<PlanId>("basic");
   const [holidayOn, setHolidayOn] = useState(true);
   const [displayName, setDisplayName] = useState("");
   const [savingName, setSavingName] = useState(false);
   const activeEventLabel = getActiveEvent()?.label ?? null;
-  const proLed = hasProLed(plan);
+  const { realm, switchRealm, transition } = useRealm();
 
   useEffect(() => {
     const stored = (localStorage.getItem("nextudy-theme") as Theme | null) ?? "system";
     setTheme(stored);
     setEdu((localStorage.getItem("nextudy-edu") as EduLevel | null) ?? "university");
     setStyle((localStorage.getItem("nextudy-style") as ResponseStyle | null) ?? "standard");
-    const led = readLedSettings();
-    setLedEnabled(led.enabled);
-    setPreset(led.preset);
-    setMotion(led.motion);
-    setUnderglow(led.underglow);
     setHolidayOn(holidayThemeEnabled());
   }, []);
 
@@ -83,10 +72,6 @@ function SettingsPage() {
       });
   }, [user]);
 
-  const updateLedEnabled = (v: boolean) => { setLedEnabled(v); setLedSettings({ enabled: v }); };
-  const updatePreset = (v: string) => { setPreset(v); setLedSettings({ preset: v }); };
-  const updateMotion = (v: LedMotion) => { setMotion(v); setLedSettings({ motion: v }); };
-  const updateUnderglow = (v: boolean) => { setUnderglow(v); setLedSettings({ underglow: v }); };
   const updateHoliday = (v: boolean) => {
     setHolidayOn(v);
     setHolidayThemeEnabled(v);
@@ -265,92 +250,38 @@ function SettingsPage() {
           {guest && <p className="text-xs text-muted-foreground">Guest sessions aren't saved, so there's nothing to clear.</p>}
         </section>
 
-        {/* LED customization */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label className="text-base flex items-center gap-2">
-                <Lightbulb className="h-4 w-4 text-primary" /> Screen-edge LED
-              </Label>
-              <p className="text-xs text-muted-foreground mt-1">
-                Ambient glow on the outer border of the chat window only.
-              </p>
-            </div>
-            <Switch checked={ledEnabled} onCheckedChange={updateLedEnabled} />
+        {/* Realm selection */}
+        <section className="space-y-3">
+          <div>
+            <Label className="text-base">Active realm</Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              Travel between the Vanguard peak and the Mentor cavern. The whole app follows the realm's palette and 1px accent borders.
+            </p>
           </div>
-
-          {ledEnabled && (
-            <>
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Basic colours</p>
-                <div className="grid grid-cols-4 gap-2">
-                  {BASIC_PRESETS.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => updatePreset(p.id)}
-                      className={`rounded-xl border p-2 flex flex-col items-center gap-1.5 transition ${
-                        preset === p.id ? "border-accent bg-accent/10" : "border-border hover:bg-muted/40"
-                      }`}
-                    >
-                      <span className="h-5 w-full rounded-md" style={{ background: p.swatch }} />
-                      <span className="text-[11px] font-medium">{p.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                  Pro effects
-                  {!proLed && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold">Pro / Turbo</span>}
-                </p>
-                <div className={`grid grid-cols-4 gap-2 ${proLed ? "" : "opacity-50"}`}>
-                  {PRO_PRESETS.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => (proLed ? updatePreset(p.id) : toast.error("Upgrade to Pro or Turbo to unlock this effect"))}
-                      className={`rounded-xl border p-2 flex flex-col items-center gap-1.5 transition ${
-                        preset === p.id ? "border-accent bg-accent/10" : "border-border hover:bg-muted/40"
-                      }`}
-                    >
-                      <span className="h-5 w-full rounded-md" style={{ background: p.swatch }} />
-                      <span className="text-[11px] font-medium text-center leading-tight">{p.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm">Motion</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {([
-                    { v: "flow", label: "Flowing (vloeibaar)" },
-                    { v: "static", label: "Static (stilstaand)" },
-                  ] as const).map(({ v, label }) => (
-                    <button
-                      key={v}
-                      onClick={() => updateMotion(v)}
-                      className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
-                        motion === v ? "border-accent bg-accent/10" : "border-border hover:bg-muted/40"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-sm">AI text underglow</Label>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Subtle glow behind AI responses in your LED colour.
-                  </p>
-                </div>
-                <Switch checked={underglow} onCheckedChange={updateUnderglow} />
-              </div>
-            </>
-          )}
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(["vanguard", "mentor"] as Realm[]).map((id) => {
+              const meta = REALM_META[id];
+              const Icon = id === "vanguard" ? Mountain : Gem;
+              const active = realm === id;
+              return (
+                <button
+                  key={id}
+                  disabled={transition !== null}
+                  onClick={() => switchRealm(id)}
+                  className={`rounded-xl border p-3 text-left transition disabled:opacity-60 ${
+                    active ? "realm-border-strong bg-accent/10" : "border-border hover:bg-muted/40"
+                  }`}
+                >
+                  <span className="flex items-center gap-2 font-medium text-sm">
+                    <Icon className="h-4 w-4 text-realm" /> {meta.name}
+                    {active && <span className="ml-auto text-[10px] uppercase tracking-wide text-realm">Active</span>}
+                  </span>
+                  <span className="block text-xs text-muted-foreground mt-1">{meta.hub} · {meta.place}</span>
+                  <span className="block text-xs text-muted-foreground mt-0.5">{meta.blurb}</span>
+                </button>
+              );
+            })}
+          </div>
         </section>
 
         {/* Holiday themes */}

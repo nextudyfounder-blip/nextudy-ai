@@ -93,7 +93,7 @@
   --gradient-accent: linear-gradient(135deg, oklch(0.55 0.22 290), oklch(0.65 0.2 310));
   --gradient-soft: linear-gradient(180deg, oklch(0.99 0.005 250), oklch(0.96 0.02 280));
   --shadow-elegant: 0 20px 60px -20px oklch(0.28 0.13 265 / 0.25);
-  --shadow-glow: 0 0 80px oklch(0.6 0.22 295 / 0.35);
+  --shadow-glow: 0 4px 14px oklch(0.2 0.02 290 / 0.28);
   --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -177,35 +177,17 @@
   .shadow-glow { box-shadow: var(--shadow-glow); }
   .transition-smooth { transition: var(--transition-smooth); }
 
-  /* Magnetic hover: subtle scale-up + soft neon glow */
+  /* Magnetic hover: subtle scale-up only (no glow) */
   .hover-magnetic {
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .hover-magnetic:hover {
-    transform: scale(1.02);
-    box-shadow: 0 0 32px -4px oklch(0.6 0.22 295 / 0.45);
-  }
+  .hover-magnetic:hover { transform: scale(1.02); }
 
-  /* Glassmorphism surface */
+  /* Flat surface panel */
   .glass-panel {
     background: var(--card);
-    border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
-  }
-
-  /* Slow-drifting mesh background */
-  .bg-mesh-ambient {
-    background-image:
-      radial-gradient(at 18% 22%, oklch(0.35 0.18 285 / 0.35) 0px, transparent 45%),
-      radial-gradient(at 82% 18%, oklch(0.28 0.16 260 / 0.35) 0px, transparent 45%),
-      radial-gradient(at 65% 82%, oklch(0.45 0.22 300 / 0.28) 0px, transparent 50%),
-      radial-gradient(at 20% 85%, oklch(0.22 0.14 265 / 0.35) 0px, transparent 50%);
-    background-size: 200% 200%;
-  }
-
-  /* Page enter (staggered slide-up) */
-  .animate-page-enter {
-    animation: page-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    border: 1px solid var(--realm-accent-soft);
   }
 
   /* Streaming message expand */
@@ -214,22 +196,12 @@
     transform-origin: top;
   }
 
-  /* Pen loader */
-  .pen-orbit {
-    animation: pen-orbit 1.4s linear infinite;
-    transform-origin: center;
-  }
-  .pen-ring-glow {
-    box-shadow:
-      0 0 24px oklch(0.6 0.22 295 / 0.55),
-      inset 0 0 12px oklch(0.6 0.22 295 / 0.35);
+  /* Rotating pencil circle loader */
+  .pencil-loader-spin {
+    animation: pencil-spin 1.2s linear infinite;
+    transform-origin: 24px 24px;
   }
   .pulse-soft { animation: pulse-soft 1.8s ease-in-out infinite; }
-}
-
-@keyframes page-enter {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes expand-down {
@@ -237,7 +209,7 @@
   to   { opacity: 1; transform: scaleY(1) translateY(0); }
 }
 
-@keyframes pen-orbit {
+@keyframes pencil-spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
@@ -264,100 +236,182 @@
 }
 
 /* ==========================================================================
-   RGB LED screen-edge border effect (chat container)
+   Dual-world realms — Mentor (cavern violet) & Vanguard (peak teal)
+   Both are refined dark environments. 1px solid accent borders only:
+   no LED, no neon, no animated light.
    ========================================================================== */
 
-@property --led-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
+:root {
+  --realm-accent: oklch(0.62 0.2 300);
+  --realm-accent-soft: oklch(0.62 0.2 300 / 0.35);
+}
+
+.realm-mentor {
+  --realm-accent: oklch(0.64 0.2 300);
+  --realm-accent-soft: oklch(0.64 0.2 300 / 0.35);
+  --realm-deep: oklch(0.13 0.05 300);
+}
+
+.realm-vanguard {
+  --realm-accent: oklch(0.7 0.13 178);
+  --realm-accent-soft: oklch(0.7 0.13 178 / 0.32);
+  --realm-deep: oklch(0.14 0.035 190);
+}
+
+/* Moody subterranean depth for the Mentor realm */
+.dark.realm-mentor {
+  --background: oklch(0.145 0.045 300);
+  --card: oklch(0.195 0.045 300);
+  --popover: oklch(0.195 0.045 300);
+  --secondary: oklch(0.245 0.045 300);
+  --muted: oklch(0.235 0.04 300);
+  --muted-foreground: oklch(0.71 0.04 300);
+  --accent: oklch(0.64 0.2 300);
+  --accent-foreground: oklch(0.985 0.003 300);
+  --ring: oklch(0.64 0.2 300);
+  --sidebar: oklch(0.175 0.045 300);
+  --sidebar-accent: oklch(0.245 0.045 300);
+  --border: oklch(0.64 0.2 300 / 0.22);
+  --sidebar-border: oklch(0.64 0.2 300 / 0.2);
+}
+
+/* Sleek, refined dark peak for the Vanguard realm */
+.dark.realm-vanguard {
+  --background: oklch(0.15 0.03 190);
+  --card: oklch(0.2 0.032 190);
+  --popover: oklch(0.2 0.032 190);
+  --secondary: oklch(0.25 0.032 190);
+  --muted: oklch(0.24 0.028 190);
+  --muted-foreground: oklch(0.73 0.035 190);
+  --accent: oklch(0.7 0.13 178);
+  --accent-foreground: oklch(0.14 0.03 190);
+  --ring: oklch(0.7 0.13 178);
+  --sidebar: oklch(0.18 0.03 190);
+  --sidebar-accent: oklch(0.25 0.032 190);
+  --border: oklch(0.7 0.13 178 / 0.22);
+  --sidebar-border: oklch(0.7 0.13 178 / 0.2);
+}
+
+/* Light mode keeps the realm accent without the cavern darkness */
+.realm-mentor:not(.dark) {
+  --accent: oklch(0.52 0.2 300);
+  --ring: oklch(0.52 0.2 300);
+}
+.realm-vanguard:not(.dark) {
+  --accent: oklch(0.55 0.11 178);
+  --ring: oklch(0.55 0.11 178);
 }
 
 @layer utilities {
-  .led-frame {
-    position: relative;
-    border-radius: 28px;
-    isolation: isolate;
-    --led-angle: 0deg;
-    --led-gradient: conic-gradient(from var(--led-angle),
-      #ff005c, #ff7b00, #ffe600, #00ff88, #00d4ff, #7a00ff, #ff005c);
-  }
-  .led-frame::after {
-    content: "";
-    position: absolute;
-    border-radius: inherit;
-    pointer-events: none;
-  }
-  /* Crisp perimeter line — the only LED render (no glow, no inner wash) */
-  .led-frame::after {
-    inset: 0;
-    padding: 1.5px;
-    background: var(--led-gradient);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    z-index: 2;
-  }
-  .led-flow { animation: led-spin 9s linear infinite; }
-  .led-flow { --led-gradient: var(--led-gradient-flow, var(--led-gradient)); }
-
-  /* ---- BASIC tier: 8 solid hues, flowing or static ---- */
-  .led-green  { --led-hue: #22c55e; --led-gradient-flow: conic-gradient(from var(--led-angle), #14532d, #22c55e, #86efac, #22c55e, #14532d); }
-  .led-yellow { --led-hue: #facc15; --led-gradient-flow: conic-gradient(from var(--led-angle), #a16207, #facc15, #fef08a, #facc15, #a16207); }
-  .led-blue   { --led-hue: #3b82f6; --led-gradient-flow: conic-gradient(from var(--led-angle), #1e3a8a, #3b82f6, #93c5fd, #3b82f6, #1e3a8a); }
-  .led-red    { --led-hue: #ef4444; --led-gradient-flow: conic-gradient(from var(--led-angle), #7f1d1d, #ef4444, #fca5a5, #ef4444, #7f1d1d); }
-  .led-cyan   { --led-hue: #06b6d4; --led-gradient-flow: conic-gradient(from var(--led-angle), #164e63, #06b6d4, #a5f3fc, #06b6d4, #164e63); }
-  .led-pink   { --led-hue: #ec4899; --led-gradient-flow: conic-gradient(from var(--led-angle), #831843, #ec4899, #f9a8d4, #ec4899, #831843); }
-  .led-orange { --led-hue: #f97316; --led-gradient-flow: conic-gradient(from var(--led-angle), #7c2d12, #f97316, #fdba74, #f97316, #7c2d12); }
-  .led-purple { --led-hue: #a855f7; --led-gradient-flow: conic-gradient(from var(--led-angle), #4c1d95, #a855f7, #d8b4fe, #a855f7, #4c1d95); }
-
-  .led-green, .led-yellow, .led-blue, .led-red,
-  .led-cyan, .led-pink, .led-orange, .led-purple { --led-gradient: var(--led-hue); }
-
-  /* ---- PRO / TURBO tier: rainbow neon, RGB gradients, multi-colour flows ---- */
-  .led-rainbow-wave { --led-hue: #00d4ff; --led-gradient: conic-gradient(from var(--led-angle), #ff005c, #ff7b00, #ffe600, #00ff88, #00d4ff, #7a00ff, #ff005c); }
-  .led-cyberpunk    { --led-hue: #ff00ea; --led-gradient: conic-gradient(from var(--led-angle), #ff00ea, #00fff0, #ff00ea, #7a00ff, #ff00ea); }
-  .led-aura         { --led-hue: #b366ff; --led-gradient: conic-gradient(from var(--led-angle), #7a00ff, #b366ff, #e0aaff, #7a00ff); }
-  .led-sunset       { --led-hue: #ff5e00; --led-gradient: conic-gradient(from var(--led-angle), #ff5e00, #ff2d55, #ff9500, #ffb347, #ff5e00); }
-  .led-ocean        { --led-hue: #00b4d8; --led-gradient: conic-gradient(from var(--led-angle), #00b4d8, #0077b6, #48cae4, #90e0ef, #00b4d8); }
-  .led-nebula       { --led-hue: #c77dff; --led-gradient: conic-gradient(from var(--led-angle), #240046, #7b2cbf, #c77dff, #5a189a, #240046); }
-  .led-forest       { --led-hue: #74c69d; --led-gradient: conic-gradient(from var(--led-angle), #2d6a4f, #74c69d, #40916c, #b7e4c7, #2d6a4f); }
-  .led-fire         { --led-hue: #ffab00; --led-gradient: conic-gradient(from var(--led-angle), #ff3d00, #ffab00, #ff6d00, #ffea00, #ff3d00); }
-}
-
-@keyframes led-spin {
-  to { --led-angle: 360deg; }
-}
-
-/* Accessibility: freeze the LED border when reduced motion is preferred */
-.led-reduced { animation: none !important; }
-
-@media (prefers-reduced-motion: reduce) {
-  .led-flow { animation: none !important; }
+  /* The single global border treatment */
+  .realm-border { border: 1px solid var(--realm-accent-soft); }
+  .realm-border-strong { border: 1px solid var(--realm-accent); }
+  .text-realm { color: var(--realm-accent); }
 }
 
 /* ==========================================================================
-   AI response text underglow (toggleable in Settings)
+   Cinematic realm transition (GPU: transform + opacity only)
    ========================================================================== */
 
-.ai-underglow { text-shadow: 0 0 10px color-mix(in srgb, var(--led-underglow, #3b82f6) 55%, transparent); }
+.realm-transit {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  pointer-events: none;
+  overflow: hidden;
+  perspective: 900px;
+  perspective-origin: 50% 50%;
+  background: var(--realm-deep, oklch(0.13 0.04 300));
+  animation: realm-veil 1.4s ease-in-out both;
+  will-change: opacity;
+}
 
-.led-glow-green  { --led-underglow: #22c55e; }
-.led-glow-yellow { --led-underglow: #facc15; }
-.led-glow-blue   { --led-underglow: #3b82f6; }
-.led-glow-red    { --led-underglow: #ef4444; }
-.led-glow-cyan   { --led-underglow: #06b6d4; }
-.led-glow-pink   { --led-underglow: #ec4899; }
-.led-glow-orange { --led-underglow: #f97316; }
-.led-glow-purple { --led-underglow: #a855f7; }
-.led-glow-rainbow-wave { --led-underglow: #00d4ff; }
-.led-glow-cyberpunk    { --led-underglow: #ff00ea; }
-.led-glow-aura         { --led-underglow: #b366ff; }
-.led-glow-sunset       { --led-underglow: #ff5e00; }
-.led-glow-ocean        { --led-underglow: #00b4d8; }
-.led-glow-nebula       { --led-underglow: #c77dff; }
-.led-glow-forest       { --led-underglow: #74c69d; }
-.led-glow-fire         { --led-underglow: #ffab00; }
+.realm-transit-stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+/* Rocky cavern rings the camera flies through */
+.realm-cavern-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150vmax;
+  height: 150vmax;
+  margin-left: -75vmax;
+  margin-top: -75vmax;
+  border-radius: 46% 54% 50% 48% / 52% 46% 54% 48%;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 34%, oklch(0.2 0.02 290 / 0.92) 36%, oklch(0.1 0.015 290) 62%, transparent 72%),
+    repeating-conic-gradient(from 0deg at 50% 50%,
+      oklch(0.24 0.02 290 / 0.55) 0deg 7deg,
+      oklch(0.15 0.015 290 / 0.55) 7deg 15deg);
+  box-shadow: inset 0 0 0 1px oklch(0.3 0.02 290 / 0.4);
+  opacity: 0;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.realm-transit-down .realm-cavern-ring {
+  animation: cavern-descend 1.35s cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+.realm-transit-up .realm-cavern-ring {
+  animation: cavern-ascend 1.35s cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+
+.realm-transit-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 28%, oklch(0.06 0.01 290 / 0.95) 82%);
+}
+
+/* Colour wash easing from the departing realm into the arriving one */
+.realm-transit-wash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, var(--realm-accent-soft), transparent 65%);
+  opacity: 0;
+  animation: realm-wash 1.4s ease-in-out both;
+  will-change: opacity;
+}
+
+/* Fast fallback: mobile + reduced motion get a clean short fade */
+.realm-transit-fast,
+.realm-transit-fast .realm-transit-wash {
+  animation-duration: 0.42s;
+}
+
+@keyframes realm-veil {
+  0%   { opacity: 0; }
+  18%  { opacity: 1; }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes realm-wash {
+  0%, 100% { opacity: 0; }
+  50%      { opacity: 0.55; }
+}
+
+/* Camera drops: rings rush upward past the lens toward the depths */
+@keyframes cavern-descend {
+  0%   { opacity: 0; transform: translate3d(0, -14vh, -1400px) scale(0.55); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(0, 16vh, 620px) scale(2.1); }
+}
+
+/* Camera rises: rings fall away below as we climb out */
+@keyframes cavern-ascend {
+  0%   { opacity: 0; transform: translate3d(0, 16vh, 620px) scale(2.1); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(0, -14vh, -1400px) scale(0.55); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .realm-cavern-ring { animation: none !important; opacity: 0 !important; }
+}
+
 
 /* ==========================================================================
    AI streaming word reveal — freezes once rendered
