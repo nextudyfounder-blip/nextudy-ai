@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Markdown } from "@/components/chat/Markdown";
-import { useUnderglowClass, usePrefersReducedMotion } from "@/components/chat/LedFrame";
+import { usePrefersReducedMotion } from "@/hooks/useReducedMotion";
 
 /** Splits into words while keeping whitespace so markdown stays intact. */
 function wordChunks(text: string): string[] {
@@ -12,7 +12,6 @@ function wordChunks(text: string): string[] {
  * freeze permanently once fully rendered. User messages never use this.
  */
 export function AiMessage({ content, animate = false }: { content: string; animate?: boolean }) {
-  const glow = useUnderglowClass();
   const reduced = usePrefersReducedMotion();
   const chunks = wordChunks(content);
   const shouldAnimate = animate && !reduced;
@@ -45,7 +44,7 @@ export function AiMessage({ content, animate = false }: { content: string; anima
   const streaming = shown < chunks.length;
 
   return (
-    <div className={glow}>
+    <div>
       <div className={streaming ? "ai-stream-tail" : undefined}>
         <Markdown content={visible} />
       </div>
@@ -68,7 +67,7 @@ export function AiStatusIndicator() {
         {[0, 1, 2].map((d) => (
           <span
             key={d}
-            className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 ai-status-dot"
+            className="h-1.5 w-1.5 rounded-full bg-[color:var(--realm-accent)] ai-status-dot"
             style={{ animationDelay: `${d * 0.18}s` }}
           />
         ))}
