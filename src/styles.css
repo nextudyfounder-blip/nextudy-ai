@@ -177,35 +177,17 @@
   .shadow-glow { box-shadow: var(--shadow-glow); }
   .transition-smooth { transition: var(--transition-smooth); }
 
-  /* Magnetic hover: subtle scale-up + soft neon glow */
+  /* Magnetic hover: subtle scale-up only (no glow) */
   .hover-magnetic {
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .hover-magnetic:hover {
-    transform: scale(1.02);
-    box-shadow: 0 0 32px -4px oklch(0.6 0.22 295 / 0.45);
-  }
+  .hover-magnetic:hover { transform: scale(1.02); }
 
-  /* Glassmorphism surface */
+  /* Flat surface panel */
   .glass-panel {
     background: var(--card);
-    border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
-  }
-
-  /* Slow-drifting mesh background */
-  .bg-mesh-ambient {
-    background-image:
-      radial-gradient(at 18% 22%, oklch(0.35 0.18 285 / 0.35) 0px, transparent 45%),
-      radial-gradient(at 82% 18%, oklch(0.28 0.16 260 / 0.35) 0px, transparent 45%),
-      radial-gradient(at 65% 82%, oklch(0.45 0.22 300 / 0.28) 0px, transparent 50%),
-      radial-gradient(at 20% 85%, oklch(0.22 0.14 265 / 0.35) 0px, transparent 50%);
-    background-size: 200% 200%;
-  }
-
-  /* Page enter (staggered slide-up) */
-  .animate-page-enter {
-    animation: page-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    border: 1px solid var(--realm-accent-soft);
   }
 
   /* Streaming message expand */
@@ -214,22 +196,12 @@
     transform-origin: top;
   }
 
-  /* Pen loader */
-  .pen-orbit {
-    animation: pen-orbit 1.4s linear infinite;
-    transform-origin: center;
-  }
-  .pen-ring-glow {
-    box-shadow:
-      0 0 24px oklch(0.6 0.22 295 / 0.55),
-      inset 0 0 12px oklch(0.6 0.22 295 / 0.35);
+  /* Rotating pencil circle loader */
+  .pencil-loader-spin {
+    animation: pencil-spin 1.2s linear infinite;
+    transform-origin: 24px 24px;
   }
   .pulse-soft { animation: pulse-soft 1.8s ease-in-out infinite; }
-}
-
-@keyframes page-enter {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes expand-down {
@@ -237,7 +209,7 @@
   to   { opacity: 1; transform: scaleY(1) translateY(0); }
 }
 
-@keyframes pen-orbit {
+@keyframes pencil-spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
