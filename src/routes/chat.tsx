@@ -635,7 +635,7 @@ function ChatPage() {
             <div className="max-w-3xl mx-auto space-y-6">
               {messages.length === 0 && !busy && (
                 <div className="text-center pt-12 sm:pt-20 animate-fade-in space-y-4">
-                  <h1 className="text-4xl sm:text-6xl font-display font-bold tracking-tight bg-gradient-accent bg-clip-text text-transparent">
+                  <h1 className="text-4xl sm:text-6xl font-display font-bold tracking-tight text-realm">
                     Study less. Know more.
                   </h1>
                   <p className="text-lg sm:text-xl font-display font-medium text-muted-foreground">
