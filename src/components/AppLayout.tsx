@@ -62,7 +62,7 @@ export function AppLayout({ children, title, hideSidebar = false }: Props) {
             <Button
               size="sm"
               onClick={() => navigate({ to: "/subscriptions" })}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:opacity-90 gap-1.5"
+              className="bg-gradient-accent text-white hover:opacity-90 gap-1.5"
               title="Upgrade to Pro"
             >
               <Sparkles className="h-3.5 w-3.5" />
