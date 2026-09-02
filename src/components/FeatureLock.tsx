@@ -27,7 +27,7 @@ export function FeatureLock({ locked, label = "Pro", className, blur = true, chi
         className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition"
         title={`Unlock ${label}`}
       >
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white text-[11px] font-semibold shadow-glow">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-accent text-white text-[11px] font-semibold shadow-glow">
           <Sparkles className="h-3 w-3" /> Unlock {label}
         </span>
       </Link>

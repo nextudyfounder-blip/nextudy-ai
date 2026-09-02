@@ -604,7 +604,7 @@ function ChatPage() {
           <div className="border-t border-border p-2">
             {user ? (
               <div className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-accent/40">
-                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 grid place-items-center text-white text-[11px] font-semibold shrink-0">
+                <div className="h-7 w-7 rounded-full bg-gradient-accent grid place-items-center text-white text-[11px] font-semibold shrink-0">
                   {(profileName || user.email || "?").slice(0, 1).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -635,7 +635,7 @@ function ChatPage() {
             <div className="max-w-3xl mx-auto space-y-6">
               {messages.length === 0 && !busy && (
                 <div className="text-center pt-12 sm:pt-20 animate-fade-in space-y-4">
-                  <h1 className="text-4xl sm:text-6xl font-display font-bold tracking-tight bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                  <h1 className="text-4xl sm:text-6xl font-display font-bold tracking-tight bg-gradient-accent bg-clip-text text-transparent">
                     Study less. Know more.
                   </h1>
                   <p className="text-lg sm:text-xl font-display font-medium text-muted-foreground">
@@ -702,7 +702,7 @@ function ChatPage() {
                     </div>
                   ) : (
                     <div className="flex gap-3">
-                      <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 grid place-items-center">
+                      <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-accent grid place-items-center">
                         <Sparkles className="h-4 w-4 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -744,7 +744,7 @@ function ChatPage() {
 
               {busy && messages.length > 0 && messages[messages.length - 1].role === "user" && (
                 <div className="flex gap-3 animate-fade-in">
-                  <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 grid place-items-center animate-pulse">
+                  <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-accent grid place-items-center animate-pulse">
                     <Sparkles className="h-4 w-4 text-white" />
                   </div>
                   <div className="flex-1 space-y-2 max-w-xl">
@@ -904,7 +904,7 @@ function ChatPage() {
                   <Button
                     type="submit"
                     size="icon"
-                    className={`rounded-full shrink-0 h-9 w-9 transition-all ${input.trim() ? "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white scale-100" : "bg-muted text-muted-foreground scale-90"}`}
+                    className={`rounded-full shrink-0 h-9 w-9 transition-all ${input.trim() ? "bg-gradient-accent text-white scale-100" : "bg-muted text-muted-foreground scale-90"}`}
                     disabled={busy || !input.trim()}
                     title="Send"
                   >

@@ -148,7 +148,7 @@ function CrewsPage() {
           <section className="p-6 md:p-10 space-y-6 animate-fade-in">
             <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:flex-wrap sm:justify-between">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-glow">
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-accent shadow-glow">
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <div className="min-w-0">
@@ -160,7 +160,7 @@ function CrewsPage() {
               </div>
               <Button
                 onClick={() => setInviteOpen(true)}
-                className="gap-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white shadow-glow"
+                className="gap-1.5 bg-gradient-accent text-white shadow-glow"
               >
                 <UserPlus className="h-4 w-4" /> Invite member
               </Button>
@@ -217,7 +217,7 @@ function MemberRow({
         <div className={cn(
           "h-10 w-10 rounded-full grid place-items-center font-bold text-sm text-white",
           isOwner
-            ? "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500"
+            ? "bg-gradient-accent"
             : "bg-gradient-to-br from-slate-500 to-slate-700"
         )}>
           {isOwner ? <Crown className="h-4 w-4" /> : initials}
