@@ -1,7 +1,8 @@
 /**
  * Hidden background calendar engine.
- * Computes, for any given moment, whether a global holiday/event window is active.
- * Purely date-driven — no configuration, no manual switches, no user-facing controls.
+ * Computes, for any given moment, whether a global event window is active and
+ * exposes presentation metadata (badge + hero banner copy) for it.
+ * Purely date-driven — no configuration, no manual switches.
  * Deliberately excludes Pride Month and Black History Month.
  */
 
@@ -14,6 +15,13 @@ export interface HolidayEvent {
   end: Date;
   /** Theme accent applied app-wide while active (CSS class suffix). */
   theme: string;
+  /** Emoji used in the badge/toast. */
+  emoji: string;
+  /** Compact badge text shown in the app header. */
+  badge: string;
+  /** Hero banner headline + subline for the landing page. */
+  bannerTitle: string;
+  bannerSub: string;
 }
 
 const UTC = (y: number, m: number, d: number, h = 0) => new Date(Date.UTC(y, m, d, h, 0, 0));
@@ -59,8 +67,12 @@ function eventsForYear(year: number): HolidayEvent[] {
       id: "new-year",
       label: "New Year",
       start: UTC(year - 1, 11, 30),
-      end: UTC(year, 0, 3),
+      end: UTC(year, 0, 8),
       theme: "newyear",
+      emoji: "🎉",
+      badge: "New Year Theme",
+      bannerTitle: "New year, new study system",
+      bannerSub: "Set your goals and let Nextudy keep the momentum going.",
     },
     {
       id: "valentines",
@@ -68,6 +80,10 @@ function eventsForYear(year: number): HolidayEvent[] {
       start: UTC(year, 1, 12),
       end: UTC(year, 1, 16),
       theme: "valentines",
+      emoji: "💌",
+      badge: "Valentine Theme",
+      bannerTitle: "Fall in love with learning",
+      bannerSub: "Summaries, quizzes and answers — with a little extra warmth.",
     },
     {
       id: "easter",
@@ -75,13 +91,32 @@ function eventsForYear(year: number): HolidayEvent[] {
       start: addDays(easter, -2),
       end: addDays(easter, 2),
       theme: "easter",
+      emoji: "🐣",
+      badge: "Easter Theme",
+      bannerTitle: "A fresh spring for your notes",
+      bannerSub: "Turn scattered material into clean, exam-ready bullets.",
+    },
+    {
+      id: "exam-prep",
+      label: "Exam Prep Season",
+      start: UTC(year, 4, 1),
+      end: UTC(year, 5, 21),
+      theme: "exam",
+      emoji: "📚",
+      badge: "Exam Prep Theme",
+      bannerTitle: "Exam season, handled",
+      bannerSub: "Upload your material and drill it with practice questions.",
     },
     {
       id: "back-to-school",
       label: "Back to School",
-      start: UTC(year, 7, 25),
-      end: UTC(year, 8, 8),
+      start: UTC(year, 7, 1),
+      end: UTC(year, 8, 11),
       theme: "school",
+      emoji: "🎒",
+      badge: "Back to School Theme",
+      bannerTitle: "Back to school, back in control",
+      bannerSub: "Start the year with every lecture summarised from day one.",
     },
     {
       id: "halloween",
@@ -89,13 +124,21 @@ function eventsForYear(year: number): HolidayEvent[] {
       start: UTC(year, 9, 25),
       end: UTC(year, 10, 1),
       theme: "halloween",
+      emoji: "🎃",
+      badge: "Halloween Theme",
+      bannerTitle: "No more scary deadlines",
+      bannerSub: "Let Nextudy carve your notes into something you can actually study.",
     },
     {
       id: "black-friday",
       label: "Black Friday",
-      start: blackFriday,
+      start: addDays(blackFriday, -3),
       end: addDays(blackFriday, 4), // through Cyber Monday
       theme: "blackfriday",
+      emoji: "🛍️",
+      badge: "Black Friday Theme",
+      bannerTitle: "Black Friday, business mode on",
+      bannerSub: "Plan the venture, price the offer, and validate it this weekend.",
     },
     {
       id: "christmas",
@@ -103,13 +146,21 @@ function eventsForYear(year: number): HolidayEvent[] {
       start: UTC(year, 11, 18),
       end: UTC(year, 11, 27),
       theme: "christmas",
+      emoji: "🎄",
+      badge: "Christmas Theme",
+      bannerTitle: "Study smart, rest easy",
+      bannerSub: "Wrap up the term with tidy summaries and quick revision.",
     },
     {
       id: "new-year-eve",
       label: "New Year",
       start: UTC(year, 11, 30),
-      end: UTC(year + 1, 0, 3),
+      end: UTC(year + 1, 0, 8),
       theme: "newyear",
+      emoji: "🎉",
+      badge: "New Year Theme",
+      bannerTitle: "New year, new study system",
+      bannerSub: "Set your goals and let Nextudy keep the momentum going.",
     },
   ];
 }
@@ -123,7 +174,7 @@ export function getActiveEvent(now: Date = new Date()): HolidayEvent | null {
 
 /**
  * Seasonal/event discounting is retired — plans are always at their standard rate.
- * Holiday windows now only drive the optional visual theme.
+ * Event windows now only drive the optional visual theme.
  */
 export const EVENT_DISCOUNTS: Record<string, number> = {};
 
