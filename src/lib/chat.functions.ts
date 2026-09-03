@@ -113,7 +113,24 @@ export const askChat = createServerFn({ method: "POST" })
       convId = c.id;
     }
 
-    let systemPrompt = NEXTUDY_SYSTEM;
+    const isVanguard = data.realm === "vanguard";
+    let systemPrompt = isVanguard ? VANGUARD_PRIME_SYSTEM : NEXTUDY_SYSTEM;
+
+    if (isVanguard) {
+      // Financial risk protection: compare stated budget against the idea.
+      const budget = detectLowBudget(data.message);
+      if (budget.low) {
+        systemPrompt += `\n\nBUDGET SIGNAL: the founder stated roughly ${budget.stated ?? "€0"} of starting capital. If the venture needs materially more than that, you MUST open with the ⚠️ CAPITAL RISK block and give low-capital alternatives.`;
+      }
+      // Trend validation from live web search.
+      if (looksLikeVenture(data.message)) {
+        const signals = await fetchTrendSignals(data.message.slice(0, 180));
+        systemPrompt += signals
+          ? `\n\nTREND SIGNALS (live web search, treat as raw and possibly noisy):\n${signals}`
+          : `\n\nTREND SIGNALS: unavailable right now — label your market read as an estimate.`;
+      }
+    }
+
 
     const { data: nameRow } = await supabase
       .from("profiles").select("display_name").eq("id", userId).maybeSingle();
