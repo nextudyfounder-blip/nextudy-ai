@@ -13,6 +13,7 @@ import { Route as WhatsNewRouteImport } from './routes/whats-new'
 import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as LibraryRouteImport } from './routes/library'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CrewsRouteImport } from './routes/crews'
@@ -41,6 +42,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedbackRoute = FeedbackRouteImport.update({
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/crews': typeof CrewsRoute
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
+  '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/crews': typeof CrewsRoute
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
+  '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/crews': typeof CrewsRoute
   '/dashboard': typeof DashboardRoute
   '/feedback': typeof FeedbackRoute
+  '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/crews'
     | '/dashboard'
     | '/feedback'
+    | '/library'
     | '/profile'
     | '/settings'
     | '/subscriptions'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/crews'
     | '/dashboard'
     | '/feedback'
+    | '/library'
     | '/profile'
     | '/settings'
     | '/subscriptions'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/crews'
     | '/dashboard'
     | '/feedback'
+    | '/library'
     | '/profile'
     | '/settings'
     | '/subscriptions'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   CrewsRoute: typeof CrewsRoute
   DashboardRoute: typeof DashboardRoute
   FeedbackRoute: typeof FeedbackRoute
+  LibraryRoute: typeof LibraryRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
   SubscriptionsRoute: typeof SubscriptionsRoute
@@ -228,6 +241,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feedback': {
@@ -303,6 +323,7 @@ const rootRouteChildren: RootRouteChildren = {
   CrewsRoute: CrewsRoute,
   DashboardRoute: DashboardRoute,
   FeedbackRoute: FeedbackRoute,
+  LibraryRoute: LibraryRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
   SubscriptionsRoute: SubscriptionsRoute,
