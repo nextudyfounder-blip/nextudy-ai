@@ -3,6 +3,7 @@ import { ArrowRight, LogIn, Upload, Sparkles, GraduationCap } from "lucide-react
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { setGuest } from "@/hooks/useGuest";
+import { SeasonBanner } from "@/components/SeasonTheme";
 
 const steps = [
   { n: 1, icon: LogIn, title: "Login", desc: "Sign in or continue as guest." },
@@ -26,6 +27,7 @@ export function Hero() {
   return (
     <section className="relative pt-32 pb-24 bg-background">
       <div className="relative max-w-6xl mx-auto px-6 text-center space-y-8">
+        <SeasonBanner />
         <div className="inline-flex items-center gap-2 realm-border rounded-full bg-card px-4 py-1.5 text-xs font-medium">
           <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--realm-accent)]" />
           AI-powered study &amp; business companion

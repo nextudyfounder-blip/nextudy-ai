@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  applyHolidayTheme, getActiveEvent, holidayThemeEnabled, HOLIDAY_THEME_STORAGE,
+  applyHolidayTheme, getActiveEvent, holidayThemeEnabled, setHolidayThemeEnabled,
+  HOLIDAY_THEME_STORAGE,
 } from "@/lib/holidays";
 
 /**
@@ -32,9 +33,16 @@ export function HolidayThemeWatcher() {
     const key = `${HOLIDAY_THEME_STORAGE.seenPrefix}${user.id}-${event.id}`;
     if (localStorage.getItem(key) === "1") return;
     localStorage.setItem(key, "1");
-    toast(`${event.label}: a holiday theme is active!`, {
-      description: "You can toggle this off anytime in Settings.",
-      duration: 8000,
+    toast(`${event.emoji} ${event.badge} active`, {
+      description: "Seasonal themes can be turned off anytime in Settings.",
+      duration: 9000,
+      action: {
+        label: "Turn off",
+        onClick: () => {
+          setHolidayThemeEnabled(false);
+          applyHolidayTheme();
+        },
+      },
     });
   }, [user, loading]);
 

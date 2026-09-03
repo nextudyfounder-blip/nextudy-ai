@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { checkChatMessage } from "@/lib/profanity";
-import { NEXTUDY_SYSTEM } from "@/lib/prompts";
+import { NEXTUDY_SYSTEM, VANGUARD_PRIME_SYSTEM } from "@/lib/prompts";
 
 const FREE_DAILY_QUESTIONS = 20;
 
@@ -14,6 +14,7 @@ const askSchema = z.object({
   documentId: z.string().uuid().optional().nullable(),
   imageBase64: z.string().max(20_000_000).optional().nullable(),
   imageMimeType: z.string().regex(IMAGE_MIME_RE).optional().nullable(),
+  realm: z.enum(["mentor", "vanguard"]).optional().nullable(),
 });
 
 function buildUserContent(message: string, imageBase64?: string | null, mime?: string | null) {
@@ -23,6 +24,56 @@ function buildUserContent(message: string, imageBase64?: string | null, mime?: s
     { type: "image_url", image_url: { url: `data:${mime ?? "image/png"};base64,${imageBase64}` } },
   ];
 }
+
+/** Detects a stated low/zero starting budget so Vanguard can flag capital risk. */
+function detectLowBudget(text: string): { low: boolean; stated?: string } {
+  const t = text.toLowerCase();
+  if (/\b(no|zero|geen|without a?)\s*(starting\s*)?(budget|capital|money|kapitaal|geld)\b/.test(t)) {
+    return { low: true, stated: "€0" };
+  }
+  const amounts = [...t.matchAll(/(?:€|eur\s?|\$)\s?([\d.,]+)\s?(k|k€)?/g)].map((m) => {
+    const n = Number(m[1].replace(/\./g, "").replace(",", "."));
+    return m[2] ? n * 1000 : n;
+  });
+  const budgetContext = /(budget|capital|kapitaal|save[d]?|spaargeld|start with|to invest|invest)/.test(t);
+  const min = amounts.length ? Math.min(...amounts) : null;
+  if (budgetContext && min !== null && min <= 1000) {
+    return { low: true, stated: `€${min}` };
+  }
+  return { low: false };
+}
+
+/**
+ * Lightweight live web trend lookup (DuckDuckGo HTML endpoint). Best effort:
+ * on any failure Vanguard is told the signals are unavailable.
+ */
+async function fetchTrendSignals(query: string): Promise<string | null> {
+  try {
+    const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(`${query} market trend 2026 demand`)}`;
+    const resp = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; NextudyBot/1.0)" },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!resp.ok) return null;
+    const html = await resp.text();
+    const snippets = [...html.matchAll(/result__snippet[^>]*>([\s\S]{0,400}?)<\/a>/g)]
+      .map((m) => m[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim())
+      .filter((s) => s.length > 40)
+      .slice(0, 5);
+    if (!snippets.length) return null;
+    return snippets.map((s, i) => `${i + 1}. ${s}`).join("\n");
+  } catch {
+    return null;
+  }
+}
+
+/** Detects whether the message looks like a business/venture evaluation. */
+function looksLikeVenture(text: string): boolean {
+  return /(business|venture|startup|dropship|e-?commerce|shop|store|saas|agency|freelanc|marketing|profit|margin|revenue|sell|onderneming|winkel|verdienen)/i.test(
+    text,
+  );
+}
+
 
 export const askChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -62,7 +113,24 @@ export const askChat = createServerFn({ method: "POST" })
       convId = c.id;
     }
 
-    let systemPrompt = NEXTUDY_SYSTEM;
+    const isVanguard = data.realm === "vanguard";
+    let systemPrompt = isVanguard ? VANGUARD_PRIME_SYSTEM : NEXTUDY_SYSTEM;
+
+    if (isVanguard) {
+      // Financial risk protection: compare stated budget against the idea.
+      const budget = detectLowBudget(data.message);
+      if (budget.low) {
+        systemPrompt += `\n\nBUDGET SIGNAL: the founder stated roughly ${budget.stated ?? "€0"} of starting capital. If the venture needs materially more than that, you MUST open with the ⚠️ CAPITAL RISK block and give low-capital alternatives.`;
+      }
+      // Trend validation from live web search.
+      if (looksLikeVenture(data.message)) {
+        const signals = await fetchTrendSignals(data.message.slice(0, 180));
+        systemPrompt += signals
+          ? `\n\nTREND SIGNALS (live web search, treat as raw and possibly noisy):\n${signals}`
+          : `\n\nTREND SIGNALS: unavailable right now — label your market read as an estimate.`;
+      }
+    }
+
 
     const { data: nameRow } = await supabase
       .from("profiles").select("display_name").eq("id", userId).maybeSingle();

@@ -288,12 +288,12 @@ function SettingsPage() {
         <section className="flex items-center justify-between">
           <div>
             <Label className="text-base flex items-center gap-2">
-              <PartyPopper className="h-4 w-4 text-accent" /> Holiday themes
+              <PartyPopper className="h-4 w-4 text-accent" /> Enable Seasonal / Event Themes
             </Label>
             <p className="text-xs text-muted-foreground mt-1">
               {activeEventLabel
-                ? `${activeEventLabel} theme is active right now.`
-                : "Automatically applied during global holidays and events."}
+                ? `${activeEventLabel} theme is active right now. Turning this off instantly restores the clean standard UI.`
+                : "Badges and hero banners appear automatically during global events (Back to School, Black Friday, New Year, Exam Prep). On by default."}
             </p>
           </div>
           <Switch checked={holidayOn} onCheckedChange={updateHoliday} />
