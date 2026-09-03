@@ -448,6 +448,7 @@
 .holiday-valentines { --accent: oklch(0.65 0.21 350); --ring: oklch(0.65 0.21 350); }
 .holiday-easter     { --accent: oklch(0.72 0.16 150); --ring: oklch(0.72 0.16 150); }
 .holiday-school     { --accent: oklch(0.6 0.18 250);  --ring: oklch(0.6 0.18 250); }
+.holiday-exam       { --accent: oklch(0.66 0.17 275); --ring: oklch(0.66 0.17 275); }
 .holiday-blackfriday { --accent: oklch(0.6 0.22 300); --ring: oklch(0.6 0.22 300); }
 
 
