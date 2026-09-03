@@ -12,6 +12,8 @@ import {
   renameConversation,
   modifyResponse,
 } from "@/lib/chat.functions";
+import { buildLaunchBlueprint } from "@/lib/blueprint.functions";
+import { useRealm } from "@/lib/realm";
 import { processPdf } from "@/lib/process-pdf.functions";
 import { ocrImage } from "@/lib/ocr.functions";
 import { extractPdfText } from "@/lib/pdf-extract";
@@ -38,7 +40,7 @@ import {
   MessageSquarePlus, MoreHorizontal, Pencil, Trash2, Brain,
   Search, Image as ImageIcon, Library, FileText, File as FileIcon,
   Pin, PinOff, Maximize2, Minimize2, Keyboard, ChevronDown, Zap,
-  Settings2, Info,
+  Settings2, Info, FileDown,
 } from "lucide-react";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -72,6 +74,8 @@ function ChatPage() {
   const guest = useGuest();
   const navigate = useNavigate();
   const askFn = useServerFn(askChat);
+  const blueprintFn = useServerFn(buildLaunchBlueprint);
+  const { realm } = useRealm();
   const askGuestFn = useServerFn(askChatGuest);
   const listFn = useServerFn(listConversations);
   const getFn = useServerFn(getConversation);
@@ -272,7 +276,7 @@ function ChatPage() {
         const res = await askGuestFn({ data: { message, history: hist, imageBase64: imgB64, imageMimeType: imgMime } });
         setMessages((m) => [...m, { role: "assistant", content: res.reply }]);
       } else {
-        const res = await askFn({ data: { message, conversationId: convId, documentId: docId, imageBase64: imgB64, imageMimeType: imgMime } });
+        const res = await askFn({ data: { message, conversationId: convId, documentId: docId, imageBase64: imgB64, imageMimeType: imgMime, realm } });
         setConvId(res.conversationId);
         setMessages((m) => {
           const next = [...m];
@@ -289,6 +293,48 @@ function ChatPage() {
       setMessages((m) => [...m, { role: "assistant", content: `⚠️ ${msg}` }]);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const [exporting, setExporting] = useState(false);
+
+  /** Compiles the Vanguard interview into a downloadable Launch Blueprint PDF. */
+  const exportBlueprint = async () => {
+    if (!convId) { toast.error("Talk through the venture first."); return; }
+    setExporting(true);
+    try {
+      const res = await blueprintFn({ data: { conversationId: convId } });
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const margin = 56;
+      const width = doc.internal.pageSize.getWidth() - margin * 2;
+      let y = margin;
+      const line = (text: string, size: number, bold: boolean, gap = 6) => {
+        doc.setFont("helvetica", bold ? "bold" : "normal");
+        doc.setFontSize(size);
+        for (const row of doc.splitTextToSize(text, width) as string[]) {
+          if (y > doc.internal.pageSize.getHeight() - margin) { doc.addPage(); y = margin; }
+          doc.text(row, margin, y);
+          y += size + 2;
+        }
+        y += gap;
+      };
+      line("Nextudy — Vanguard Prime", 10, false, 2);
+      for (const raw of res.markdown.split("\n")) {
+        const t = raw.trim();
+        if (!t) { y += 6; continue; }
+        if (t.startsWith("## ")) line(t.slice(3), 13, true, 4);
+        else if (t.startsWith("# ")) line(t.slice(2), 19, true, 10);
+        else if (/^[-*]\s/.test(t)) line("•  " + t.replace(/^[-*]\s/, "").replace(/\*\*/g, ""), 10.5, false, 2);
+        else line(t.replace(/\*\*/g, ""), 10.5, false, 3);
+      }
+      line(`Generated ${new Date(res.generatedAt).toLocaleString()}`, 8.5, false, 0);
+      doc.save("nextudy-launch-blueprint.pdf");
+      toast.success("Launch Blueprint exported");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not export the blueprint");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -759,6 +805,17 @@ function ChatPage() {
 
           {/* Top-right floating controls */}
           <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+            {realm === "vanguard" && !guest && (
+              <button
+                onClick={exportBlueprint}
+                disabled={exporting}
+                title="Export Launch Blueprint PDF"
+                className="flex items-center gap-1.5 px-2.5 py-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition text-xs font-medium disabled:opacity-60"
+              >
+                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+                <span className="hidden sm:inline">Blueprint PDF</span>
+              </button>
+            )}
             <button
               onClick={() => setFocusMode((v) => !v)}
               title={focusMode ? "Exit focus mode (Ctrl+.)" : "Focus mode (Ctrl+.)"}
