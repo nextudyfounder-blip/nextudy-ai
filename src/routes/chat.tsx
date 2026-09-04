@@ -105,6 +105,9 @@ function ChatPage() {
   const [listening, setListening] = useState(false);
   const [search, setSearch] = useState("");
   const [pendingImage, setPendingImage] = useState<{ b64: string; mime: string; name: string } | null>(null);
+  /** In-session file text (zero storage: never uploaded or persisted server-side). */
+  const [pendingFile, setPendingFile] = useState<{ name: string; text: string } | null>(null);
+
   const [model, setModel] = useState<"flash" | "pro" | "thinking">("flash");
   const [focusMode, setFocusMode] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
