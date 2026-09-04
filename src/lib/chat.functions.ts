@@ -143,6 +143,14 @@ export const askChat = createServerFn({ method: "POST" })
       systemPrompt += `\n\nAddress the user as "${preferredName}" when it feels natural.`;
     }
 
+    // Zero-storage attachment: text extracted in the browser, never persisted as a file.
+    if (data.contextText && data.contextText.trim().length > 20) {
+      systemPrompt += `\n\nATTACHED FILE (this session only)${
+        data.contextName ? ` — "${data.contextName}"` : ""
+      }:\n${data.contextText.slice(0, 60000)}`;
+    }
+
+
     if (data.documentId) {
       const { data: doc } = await supabase
         .from("documents").select("file_name, extracted_text")
