@@ -873,7 +873,7 @@ function ChatPage() {
                   ref={textareaRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
+                  onKeyDown={(e) => { if (e.key === "Enter" && (!e.shiftKey || e.ctrlKey || e.metaKey)) { e.preventDefault(); send(input); } }}
                   placeholder="Ask Nextudy anything…"
                   rows={1}
                   className="w-full bg-transparent resize-none outline-none px-3 py-2 text-sm min-h-[40px] max-h-[200px]"
