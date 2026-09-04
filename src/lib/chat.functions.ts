@@ -15,7 +15,11 @@ const askSchema = z.object({
   imageBase64: z.string().max(20_000_000).optional().nullable(),
   imageMimeType: z.string().regex(IMAGE_MIME_RE).optional().nullable(),
   realm: z.enum(["mentor", "vanguard"]).optional().nullable(),
+  /** Zero-storage file ingestion: extracted text passed straight into session context. */
+  contextText: z.string().max(120_000).optional().nullable(),
+  contextName: z.string().max(300).optional().nullable(),
 });
+
 
 function buildUserContent(message: string, imageBase64?: string | null, mime?: string | null) {
   if (!imageBase64) return message;
@@ -138,6 +142,14 @@ export const askChat = createServerFn({ method: "POST" })
     if (preferredName) {
       systemPrompt += `\n\nAddress the user as "${preferredName}" when it feels natural.`;
     }
+
+    // Zero-storage attachment: text extracted in the browser, never persisted as a file.
+    if (data.contextText && data.contextText.trim().length > 20) {
+      systemPrompt += `\n\nATTACHED FILE (this session only)${
+        data.contextName ? ` — "${data.contextName}"` : ""
+      }:\n${data.contextText.slice(0, 60000)}`;
+    }
+
 
     if (data.documentId) {
       const { data: doc } = await supabase
