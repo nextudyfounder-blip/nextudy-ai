@@ -373,35 +373,26 @@ function ChatPage() {
     if (!user) return;
     setBusy(true);
     try {
-      // For images: attach as vision input AND OCR for document context
+      // For images: attach as vision input (nothing stored)
       if (file.type.startsWith("image/")) {
         const b64 = await fileToBase64(file);
         setPendingImage({ b64, mime: file.type, name: file.name });
         toast.success(`🖼️ ${file.name} attached — ask anything about it`);
         return;
       }
-      let text = "";
-      if (file.type === "application/pdf") {
-        toast.info("Reading PDF…");
-        text = await extractPdfText(file);
-      } else {
+      if (file.type !== "application/pdf") {
         toast.error("Upload a PDF or image");
         return;
       }
+      toast.info("Reading PDF…");
+      // Zero-storage ingestion: text is extracted in the browser and kept in
+      // this chat session only — the original file is never uploaded.
+      const text = await extractPdfText(file);
       if (text.length < 20) throw new Error("Not enough text extracted");
-      const path = `${user.id}/${Date.now()}-${file.name}`;
-      const { error: upErr } = await supabase.storage.from("pdfs").upload(path, file);
-      if (upErr) throw upErr;
-      // Insert only required columns — let Supabase fill id/created_at/status default
-      const { data: doc, error: insErr } = await supabase
-        .from("documents")
-        .insert({ user_id: user.id, file_name: file.name, storage_path: path })
-        .select("id").single();
-      if (insErr) throw insErr;
-      await processFn({ data: { documentId: doc.id, text } });
-      setDocId(doc.id);
+      setPendingFile({ name: file.name, text });
+      setDocId(null);
       setDocName(file.name);
-      toast.success(`📎 ${file.name} attached`);
+      toast.success(`📎 ${file.name} added to this chat`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -409,8 +400,10 @@ function ChatPage() {
       if (fileRef.current) fileRef.current.value = "";
     }
   };
-  // unused (vision uses direct b64): keep ocrFn reference satisfied
+  // unused (vision uses direct b64): keep server fn references satisfied
   void ocrFn;
+  void processFn;
+
 
   // Voice input
   const toggleMic = () => {
