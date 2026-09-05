@@ -10,9 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsNewRouteImport } from './routes/whats-new'
+import { Route as TutorialRouteImport } from './routes/tutorial'
 import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FeedbackRouteImport } from './routes/feedback'
@@ -30,6 +32,11 @@ const WhatsNewRoute = WhatsNewRouteImport.update({
   path: '/whats-new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TutorialRoute = TutorialRouteImport.update({
+  id: '/tutorial',
+  path: '/tutorial',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SubscriptionsRoute = SubscriptionsRouteImport.update({
   id: '/subscriptions',
   path: '/subscriptions',
@@ -43,6 +50,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryRoute = LibraryRouteImport.update({
@@ -111,9 +123,11 @@ export interface FileRoutesByFullPath {
   '/feedback': typeof FeedbackRoute
   '/how-it-works': typeof HowItWorksRoute
   '/library': typeof LibraryRoute
+  '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
+  '/tutorial': typeof TutorialRoute
   '/whats-new': typeof WhatsNewRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
@@ -128,9 +142,11 @@ export interface FileRoutesByTo {
   '/feedback': typeof FeedbackRoute
   '/how-it-works': typeof HowItWorksRoute
   '/library': typeof LibraryRoute
+  '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
+  '/tutorial': typeof TutorialRoute
   '/whats-new': typeof WhatsNewRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
@@ -146,9 +162,11 @@ export interface FileRoutesById {
   '/feedback': typeof FeedbackRoute
   '/how-it-works': typeof HowItWorksRoute
   '/library': typeof LibraryRoute
+  '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
+  '/tutorial': typeof TutorialRoute
   '/whats-new': typeof WhatsNewRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
@@ -165,9 +183,11 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/how-it-works'
     | '/library'
+    | '/pricing'
     | '/profile'
     | '/settings'
     | '/subscriptions'
+    | '/tutorial'
     | '/whats-new'
     | '/api/public/create-checkout'
     | '/api/public/invite-member'
@@ -182,9 +202,11 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/how-it-works'
     | '/library'
+    | '/pricing'
     | '/profile'
     | '/settings'
     | '/subscriptions'
+    | '/tutorial'
     | '/whats-new'
     | '/api/public/create-checkout'
     | '/api/public/invite-member'
@@ -199,9 +221,11 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/how-it-works'
     | '/library'
+    | '/pricing'
     | '/profile'
     | '/settings'
     | '/subscriptions'
+    | '/tutorial'
     | '/whats-new'
     | '/api/public/create-checkout'
     | '/api/public/invite-member'
@@ -217,9 +241,11 @@ export interface RootRouteChildren {
   FeedbackRoute: typeof FeedbackRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LibraryRoute: typeof LibraryRoute
+  PricingRoute: typeof PricingRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
   SubscriptionsRoute: typeof SubscriptionsRoute
+  TutorialRoute: typeof TutorialRoute
   WhatsNewRoute: typeof WhatsNewRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
   ApiPublicInviteMemberRoute: typeof ApiPublicInviteMemberRoute
@@ -233,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/whats-new'
       fullPath: '/whats-new'
       preLoaderRoute: typeof WhatsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutorial': {
+      id: '/tutorial'
+      path: '/tutorial'
+      fullPath: '/tutorial'
+      preLoaderRoute: typeof TutorialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/subscriptions': {
@@ -254,6 +287,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library': {
@@ -345,9 +385,11 @@ const rootRouteChildren: RootRouteChildren = {
   FeedbackRoute: FeedbackRoute,
   HowItWorksRoute: HowItWorksRoute,
   LibraryRoute: LibraryRoute,
+  PricingRoute: PricingRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
   SubscriptionsRoute: SubscriptionsRoute,
+  TutorialRoute: TutorialRoute,
   WhatsNewRoute: WhatsNewRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
   ApiPublicInviteMemberRoute: ApiPublicInviteMemberRoute,
