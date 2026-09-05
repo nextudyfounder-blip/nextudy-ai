@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsNewRouteImport } from './routes/whats-new'
+import { Route as TutorialRouteImport } from './routes/tutorial'
 import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -29,6 +30,11 @@ import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public
 const WhatsNewRoute = WhatsNewRouteImport.update({
   id: '/whats-new',
   path: '/whats-new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TutorialRoute = TutorialRouteImport.update({
+  id: '/tutorial',
+  path: '/tutorial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SubscriptionsRoute = SubscriptionsRouteImport.update({
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
+  '/tutorial': typeof TutorialRoute
   '/whats-new': typeof WhatsNewRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
+  '/tutorial': typeof TutorialRoute
   '/whats-new': typeof WhatsNewRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
+  '/tutorial': typeof TutorialRoute
   '/whats-new': typeof WhatsNewRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/invite-member': typeof ApiPublicInviteMemberRoute
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/subscriptions'
+    | '/tutorial'
     | '/whats-new'
     | '/api/public/create-checkout'
     | '/api/public/invite-member'
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/subscriptions'
+    | '/tutorial'
     | '/whats-new'
     | '/api/public/create-checkout'
     | '/api/public/invite-member'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/subscriptions'
+    | '/tutorial'
     | '/whats-new'
     | '/api/public/create-checkout'
     | '/api/public/invite-member'
@@ -233,6 +245,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
   SubscriptionsRoute: typeof SubscriptionsRoute
+  TutorialRoute: typeof TutorialRoute
   WhatsNewRoute: typeof WhatsNewRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
   ApiPublicInviteMemberRoute: typeof ApiPublicInviteMemberRoute
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/whats-new'
       fullPath: '/whats-new'
       preLoaderRoute: typeof WhatsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutorial': {
+      id: '/tutorial'
+      path: '/tutorial'
+      fullPath: '/tutorial'
+      preLoaderRoute: typeof TutorialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/subscriptions': {
@@ -369,6 +389,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
   SubscriptionsRoute: SubscriptionsRoute,
+  TutorialRoute: TutorialRoute,
   WhatsNewRoute: WhatsNewRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
   ApiPublicInviteMemberRoute: ApiPublicInviteMemberRoute,

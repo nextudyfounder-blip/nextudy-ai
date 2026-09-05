@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Moon, Bot, Image as ImageIcon, MessageSquare, Flame, Trophy, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RevealOnScroll } from "@/components/RevealOnScroll";
 import { Navbar } from "@/components/landing/Navbar";
@@ -10,21 +10,24 @@ export const Route = createFileRoute("/whats-new")({
   head: () => ({
     meta: [
       { title: "What's New — Nextudy" },
-      { name: "description", content: "Latest features and improvements in Nextudy: dark mode, AI chatbot, image upload and more." },
+      { name: "description", content: "Latest Nextudy updates: instant file reading with zero storage, chat PDF export, auto-save recovery and dual study hubs." },
       { property: "og:title", content: "What's New — Nextudy" },
-      { property: "og:description", content: "See what's new in Nextudy — May 2026 release." },
+      { property: "og:description", content: "See the newest Nextudy features and improvements." },
+      { property: "og:type", content: "article" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
 
 const items = [
-  { icon: Moon, emoji: "🌙", title: "Dark Mode", desc: "Switch between light and dark mode for comfortable studying day and night.", cta: "Try it", to: "/dashboard" as const },
-  { icon: Bot, emoji: "🤖", title: "AI Chatbot", desc: "Ask any study question and get instant answers. Supports all subjects including math, biology, chemistry and more.", cta: "Open chat", to: "/chat" as const },
-  { icon: ImageIcon, emoji: "📸", title: "Image Upload", desc: "Upload a photo of your textbook or handwritten notes and let AI read it for you.", cta: "Try it", to: "/dashboard" as const },
-  { icon: Sparkles, emoji: "✨", title: "Prompt Templates (soon)", desc: "One-tap starters — Summarize, Quiz me, Flashcards, Study plan and more — rich rendered cards inside the chat. Rolling out in the next update.", soon: true },
-  { icon: Flame, emoji: "🔥", title: "Study Streaks", desc: "Coming soon: earn badges for studying multiple days in a row.", soon: true },
-  { icon: Trophy, emoji: "🏆", title: "Leaderboard", desc: "Coming soon: compete with other students.", soon: true },
+  { emoji: "⚡", title: "Instant file reading", desc: "Attach a PDF or photo and it's read straight into your conversation. Your files are never stored on our servers.", cta: "Try it", to: "/chat" as const },
+  { emoji: "📄", title: "Export chat to PDF", desc: "Download a clean, styled PDF of any conversation — perfect for revision notes.", cta: "Open chat", to: "/chat" as const },
+  { emoji: "💾", title: "Auto-save recovery", desc: "Your active chat and anything you were typing are kept safe, even if you refresh or close the tab.", cta: "Open chat", to: "/chat" as const },
+  { emoji: "🏔️", title: "Mentor & Vanguard hubs", desc: "Switch between your study partner and your blunt business partner, each with its own look and voice.", cta: "Switch hubs", to: "/chat" as const },
+  { emoji: "🌙", title: "Dark mode", desc: "Comfortable studying day and night, with themes that follow the season.", cta: "Try it", to: "/dashboard" as const },
+  { emoji: "🖼️", title: "Photo of your notes", desc: "Snap your textbook or handwriting and Nextudy reads it for you — printed or handwritten.", cta: "Try it", to: "/chat" as const },
 ];
+
 
 
 function WhatsNew() {
