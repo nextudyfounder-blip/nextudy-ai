@@ -244,6 +244,9 @@ function ChatPage() {
     setDocId(null);
     setDocName(null);
     setPendingImage(null);
+    setPendingFile(null);
+    setInput("");
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
     textareaRef.current?.focus();
   };
 
@@ -266,8 +269,9 @@ function ChatPage() {
     if (!user && !guest) return;
     const imgB64 = pendingImage?.b64 ?? null;
     const imgMime = pendingImage?.mime ?? null;
-    const userBubble = pendingImage
-      ? `${message}\n\n_📎 ${pendingImage.name}_`
+    const attachName = pendingImage?.name ?? pendingFile?.name ?? null;
+    const userBubble = attachName
+      ? `${message}\n\n_📎 ${attachName}_`
       : message;
     setMessages((m) => [...m, { role: "user", content: userBubble }]);
     setInput("");
@@ -279,7 +283,8 @@ function ChatPage() {
         const res = await askGuestFn({ data: { message, history: hist, imageBase64: imgB64, imageMimeType: imgMime } });
         setMessages((m) => [...m, { role: "assistant", content: res.reply }]);
       } else {
-        const res = await askFn({ data: { message, conversationId: convId, documentId: docId, imageBase64: imgB64, imageMimeType: imgMime, realm } });
+        const res = await askFn({ data: { message, conversationId: convId, documentId: docId, imageBase64: imgB64, imageMimeType: imgMime, realm, contextText: pendingFile?.text ?? null, contextName: pendingFile?.name ?? null } });
+
         setConvId(res.conversationId);
         setMessages((m) => {
           const next = [...m];
