@@ -968,7 +968,7 @@ function ChatPage() {
                     <div className="flex items-center gap-2 text-xs bg-accent/20 border border-accent/40 rounded-full px-3 py-1.5">
                       <Paperclip className="h-3 w-3" />
                       <span className="truncate max-w-[200px]">{docName}</span>
-                      <button onClick={() => { setDocId(null); setDocName(null); }} className="hover:text-foreground"><X className="h-3 w-3" /></button>
+                      <button onClick={() => { setDocId(null); setDocName(null); setPendingFile(null); }} className="hover:text-foreground"><X className="h-3 w-3" /></button>
                     </div>
                   )}
                 </div>
