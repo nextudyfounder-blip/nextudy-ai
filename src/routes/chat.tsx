@@ -917,6 +917,17 @@ function ChatPage() {
 
           {/* Top-right floating controls */}
           <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+            {messages.length > 0 && (
+              <button
+                onClick={exportChatPdf}
+                disabled={exportingChat}
+                title="Export chat to PDF"
+                className="flex items-center gap-1.5 px-2.5 py-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition text-xs font-medium disabled:opacity-60"
+              >
+                {exportingChat ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+                <span className="hidden sm:inline">Export chat</span>
+              </button>
+            )}
             {realm === "vanguard" && !guest && (
               <button
                 onClick={exportBlueprint}
@@ -924,10 +935,11 @@ function ChatPage() {
                 title="Export Launch Blueprint PDF"
                 className="flex items-center gap-1.5 px-2.5 py-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition text-xs font-medium disabled:opacity-60"
               >
-                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
                 <span className="hidden sm:inline">Blueprint PDF</span>
               </button>
             )}
+
             <button
               onClick={() => setFocusMode((v) => !v)}
               title={focusMode ? "Exit focus mode (Ctrl+.)" : "Focus mode (Ctrl+.)"}
