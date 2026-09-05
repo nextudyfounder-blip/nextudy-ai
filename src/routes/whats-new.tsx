@@ -59,16 +59,14 @@ function WhatsNew() {
                     <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 hover:shadow-elegant transition-smooth">
                       <h2 className="font-display font-bold text-lg sm:text-xl flex items-center gap-2">
                         {it.title}
-                        {it.soon && <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Coming soon</span>}
                       </h2>
                       <p className="text-muted-foreground text-sm mt-2 leading-relaxed">{it.desc}</p>
-                      {!it.soon && it.to && (
-                        <div className="mt-4">
-                          <Button variant="hero" size="sm" asChild>
-                            <Link to={it.to}>{it.cta} →</Link>
-                          </Button>
-                        </div>
-                      )}
+                      <div className="mt-4">
+                        <Button variant="hero" size="sm" asChild>
+                          <Link to={it.to}>{it.cta} →</Link>
+                        </Button>
+                      </div>
+
                     </div>
                   </li>
                 </RevealOnScroll>
