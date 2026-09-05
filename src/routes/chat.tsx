@@ -306,7 +306,116 @@ function ChatPage() {
     }
   };
 
+  // ---- Auto-save recovery: keep the active chat safe across refreshes ----
+  const restored = useRef(false);
+  useEffect(() => {
+    if (restored.current) return;
+    restored.current = true;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { convId?: string | null; messages?: Msg[]; input?: string; fileName?: string | null };
+      if (saved.input) setInput(saved.input);
+      if (saved.messages?.length) {
+        setMessages(saved.messages);
+        setConvId(saved.convId ?? null);
+        if (saved.fileName) setDocName(saved.fileName);
+        toast("Recovered your last chat", { description: "Picked up right where you left off." });
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    if (!restored.current) return;
+    const id = window.setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+          convId, input, fileName: pendingFile?.name ?? null,
+          messages: messages.slice(-40),
+        }));
+      } catch { /* quota — ignore */ }
+    }, 400);
+    return () => window.clearTimeout(id);
+  }, [messages, input, convId, pendingFile]);
+
   const [exporting, setExporting] = useState(false);
+  const [exportingChat, setExportingChat] = useState(false);
+
+  /** Renders the active conversation as a styled PDF transcript. */
+  const exportChatPdf = async () => {
+    if (!messages.length) { toast.error("Nothing to export yet."); return; }
+    setExportingChat(true);
+    try {
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const margin = 52;
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const width = pageW - margin * 2;
+      let y = margin;
+      const nl = (h: number) => { if (y + h > pageH - margin) { doc.addPage(); y = margin; } };
+      const write = (text: string, size: number, bold: boolean, color: [number, number, number], gap = 6) => {
+        doc.setFont("helvetica", bold ? "bold" : "normal");
+        doc.setFontSize(size);
+        doc.setTextColor(...color);
+        for (const row of doc.splitTextToSize(text, width) as string[]) {
+          nl(size + 4);
+          doc.text(row, margin, y);
+          y += size + 3;
+        }
+        y += gap;
+      };
+
+      // Header band
+      doc.setFillColor(28, 26, 56);
+      doc.rect(0, 0, pageW, 74, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("Nextudy", margin, 34);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(
+        `${realm === "vanguard" ? "Vanguard Hub" : "Mentor Hub"} · ${new Date().toLocaleString()}`,
+        margin,
+        52,
+      );
+      y = 104;
+
+      const title = conversations.find((c) => c.id === convId)?.title;
+      write(shortenTitle(title || messages[0]?.content || "Chat transcript", 70), 15, true, [20, 20, 30], 12);
+
+      for (const m of messages) {
+        const isUser = m.role === "user";
+        write(isUser ? "You" : "Nextudy", 9.5, true, isUser ? [90, 90, 110] : [96, 62, 200], 2);
+        const body = m.content
+          .replace(/```[a-z]*\n?/gi, "")
+          .replace(/\*\*|__|`/g, "");
+        for (const raw of body.split("\n")) {
+          const t = raw.trim();
+          if (!t) { y += 5; continue; }
+          if (t.startsWith("### ")) write(t.slice(4), 11.5, true, [20, 20, 30], 3);
+          else if (t.startsWith("## ")) write(t.slice(3), 13, true, [20, 20, 30], 4);
+          else if (t.startsWith("# ")) write(t.slice(2), 15, true, [20, 20, 30], 6);
+          else if (/^[-*]\s/.test(t)) write("•  " + t.replace(/^[-*]\s/, ""), 10.5, false, [45, 45, 58], 1);
+          else write(t, 10.5, false, [45, 45, 58], 3);
+        }
+        nl(18);
+        doc.setDrawColor(226, 226, 236);
+        doc.line(margin, y, pageW - margin, y);
+        y += 14;
+      }
+
+      write("Generated with Nextudy — nextudy-ai.lovable.app", 8.5, false, [130, 130, 145], 0);
+      doc.save("nextudy-chat.pdf");
+      toast.success("Chat exported to PDF");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not export this chat");
+    } finally {
+      setExportingChat(false);
+    }
+  };
+
 
   /** Compiles the Vanguard interview into a downloadable Launch Blueprint PDF. */
   const exportBlueprint = async () => {
