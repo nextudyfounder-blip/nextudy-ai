@@ -68,6 +68,8 @@ function shortenTitle(raw: string | null | undefined, max = 34): string {
 
 
 const REMINDER_KEY = "nextudy-pro-reminder";
+const DRAFT_KEY = "nextudy-chat-autosave";
+
 
 function ChatPage() {
   const { user } = useAuth();
