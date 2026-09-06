@@ -111,7 +111,7 @@ export const askChat = createServerFn({ method: "POST" })
       const title = data.message.slice(0, 60);
       const { data: c, error } = await supabase
         .from("conversations")
-        .insert({ user_id: userId, title })
+        .insert({ user_id: userId, title, realm: data.realm === "vanguard" ? "vanguard" : "mentor" })
         .select("id").single();
       if (error) throw error;
       convId = c.id;
@@ -224,12 +224,17 @@ export const askChat = createServerFn({ method: "POST" })
 
 export const listConversations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: unknown) =>
+    z.object({ realm: z.enum(["mentor", "vanguard"]).default("mentor") }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data } = await supabase
+    // Strict separation: a realm only ever sees its own conversations.
+    const { data: rows } = await supabase
       .from("conversations").select("id, title, updated_at")
-      .eq("user_id", userId).order("updated_at", { ascending: false }).limit(50);
-    return { conversations: data ?? [] };
+      .eq("user_id", userId).eq("realm", data.realm)
+      .order("updated_at", { ascending: false }).limit(50);
+    return { conversations: rows ?? [] };
   });
 
 export const getConversation = createServerFn({ method: "GET" })

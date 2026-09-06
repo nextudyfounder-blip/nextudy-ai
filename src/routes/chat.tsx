@@ -68,7 +68,8 @@ function shortenTitle(raw: string | null | undefined, max = 34): string {
 
 
 const REMINDER_KEY = "nextudy-pro-reminder";
-const DRAFT_KEY = "nextudy-chat-autosave";
+const DRAFT_KEY_BASE = "nextudy-chat-autosave";
+const draftKey = (realm: string) => `${DRAFT_KEY_BASE}-${realm}`;
 
 
 function ChatPage() {
@@ -213,11 +214,24 @@ function ChatPage() {
   // Load conversations
   const refreshConvs = async () => {
     try {
-      const res = await listFn();
+      const res = await listFn({ data: { realm } });
       setConversations(res.conversations);
     } catch { /* ignore */ }
   };
-  useEffect(() => { if (user) refreshConvs(); }, [user]);
+  useEffect(() => { if (user) refreshConvs(); }, [user, realm]);
+
+  // Realm swap: never carry a conversation across hubs.
+  const lastRealm = useRef(realm);
+  useEffect(() => {
+    if (lastRealm.current === realm) return;
+    lastRealm.current = realm;
+    setMessages([]);
+    setConvId(null);
+    setPendingImage(null);
+    setPendingFile(null);
+    setInput("");
+
+  }, [realm]);
 
   // Daily Pro reminder
   useEffect(() => {
@@ -248,7 +262,7 @@ function ChatPage() {
     setPendingImage(null);
     setPendingFile(null);
     setInput("");
-    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+    try { localStorage.removeItem(draftKey(realm)); } catch { /* ignore */ }
     textareaRef.current?.focus();
   };
 
@@ -307,12 +321,12 @@ function ChatPage() {
   };
 
   // ---- Auto-save recovery: keep the active chat safe across refreshes ----
-  const restored = useRef(false);
+  const restored = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (restored.current) return;
-    restored.current = true;
+    if (restored.current.has(realm)) return;
+    restored.current.add(realm);
     try {
-      const raw = localStorage.getItem(DRAFT_KEY);
+      const raw = localStorage.getItem(draftKey(realm));
       if (!raw) return;
       const saved = JSON.parse(raw) as { convId?: string | null; messages?: Msg[]; input?: string; fileName?: string | null };
       if (saved.input) setInput(saved.input);
@@ -323,20 +337,20 @@ function ChatPage() {
         toast("Recovered your last chat", { description: "Picked up right where you left off." });
       }
     } catch { /* ignore */ }
-  }, []);
+  }, [realm]);
 
   useEffect(() => {
-    if (!restored.current) return;
+    if (!restored.current.has(realm)) return;
     const id = window.setTimeout(() => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        localStorage.setItem(draftKey(realm), JSON.stringify({
           convId, input, fileName: pendingFile?.name ?? null,
           messages: messages.slice(-40),
         }));
       } catch { /* quota — ignore */ }
     }, 400);
     return () => window.clearTimeout(id);
-  }, [messages, input, convId, pendingFile]);
+  }, [messages, input, convId, pendingFile, realm]);
 
   const [exporting, setExporting] = useState(false);
   const [exportingChat, setExportingChat] = useState(false);
