@@ -213,11 +213,24 @@ function ChatPage() {
   // Load conversations
   const refreshConvs = async () => {
     try {
-      const res = await listFn();
+      const res = await listFn({ data: { realm } });
       setConversations(res.conversations);
     } catch { /* ignore */ }
   };
-  useEffect(() => { if (user) refreshConvs(); }, [user]);
+  useEffect(() => { if (user) refreshConvs(); }, [user, realm]);
+
+  // Realm swap: never carry a conversation across hubs.
+  const lastRealm = useRef(realm);
+  useEffect(() => {
+    if (lastRealm.current === realm) return;
+    lastRealm.current = realm;
+    setMessages([]);
+    setConvId(null);
+    setPendingImage(null);
+    setPendingFile(null);
+    setInput("");
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+  }, [realm]);
 
   // Daily Pro reminder
   useEffect(() => {
