@@ -50,9 +50,9 @@ export function Hero() {
 
         {/* 4 horizontal step cards — the page ends here */}
         <div id="how-it-works" className="relative mt-20 scroll-mt-24">
-          <ol className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+          <ol className="tilt-3d-scene grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
             {steps.map((s) => (
-              <li key={s.title} className="realm-border rounded-2xl bg-card p-5 text-left transition-transform hover:-translate-y-0.5">
+              <li key={s.title} className="tilt-3d realm-border rounded-2xl bg-card p-5 text-left">
                 <div className="flex items-start gap-3">
                   <div className="h-11 w-11 shrink-0 rounded-xl realm-border bg-background grid place-items-center">
                     <s.icon className="h-5 w-5 text-realm" />
