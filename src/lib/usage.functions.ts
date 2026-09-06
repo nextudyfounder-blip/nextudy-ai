@@ -20,8 +20,8 @@ export const getDailyUsage = createServerFn({ method: "GET" })
     return {
       uploads: usage?.uploads ?? 0,
       questions: usage?.questions ?? 0,
-      // TEMP PREVIEW OVERRIDE: force pro tier for testing premium features
-      plan: "pro" as const,
+      // TEMP PREVIEW OVERRIDE: force turbo tier for testing premium features
+      plan: "turbo" as const,
       limits: { uploads: 99999, questions: 99999 },
     };
   });

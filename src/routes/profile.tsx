@@ -11,7 +11,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Shuffle, FileText, MessageSquare, Flame } from "lucide-react";
+import { Shuffle, FileText, MessageSquare, Flame, Zap } from "lucide-react";
+import { normalizePlan, planById, type PlanId } from "@/lib/plans";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
@@ -26,6 +27,7 @@ interface ProfileRow {
   avatar_seed: string | null;
   avatar_style: string;
   uploads_this_month: number;
+  plan: string | null;
 }
 
 function ProfilePage() {
@@ -37,6 +39,7 @@ function ProfilePage() {
   const [seed, setSeed] = useState("");
   const [style, setStyle] = useState("adventurer");
   const [stats, setStats] = useState({ uploads: 0, chats: 0 });
+  const [plan, setPlan] = useState<PlanId>("basic");
 
   useEffect(() => {
     if (!user) return;
@@ -44,7 +47,7 @@ function ProfilePage() {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("display_name, avatar_seed, avatar_style, uploads_this_month")
+        .select("display_name, avatar_seed, avatar_style, uploads_this_month, plan")
         .eq("id", user.id)
         .maybeSingle();
       if (!active) return;
@@ -54,6 +57,7 @@ function ProfilePage() {
         setDisplayName(p.display_name ?? "");
         setSeed(p.avatar_seed ?? user.id.slice(0, 8));
         setStyle(p.avatar_style ?? "adventurer");
+        setPlan(normalizePlan(p.plan));
       }
       const [{ count: uploads }, { count: chats }] = await Promise.all([
         supabase.from("documents").select("id", { count: "exact", head: true }).eq("user_id", user.id),
@@ -93,6 +97,10 @@ function ProfilePage() {
                 <div className="flex-1 text-center sm:text-left">
                   <h2 className="font-display text-2xl font-bold">{displayName || user?.email}</h2>
                   <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  <span className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${plan === "turbo" ? "bg-gradient-accent text-white shadow-glow" : plan === "pro" ? "bg-primary/15 text-primary border border-primary/30" : "bg-muted text-muted-foreground border border-border"}`}>
+                    {plan === "basic" ? null : <Zap className="h-3 w-3" />}
+                    {planById(plan).name} plan
+                  </span>
                 </div>
               </CardContent>
             </Card>

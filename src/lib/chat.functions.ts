@@ -89,7 +89,7 @@ export const askChat = createServerFn({ method: "POST" })
 
     const { data: prof } = await supabase
       .from("profiles").select("plan").eq("id", userId).maybeSingle();
-    const isFree = false; // TEMP PREVIEW OVERRIDE: treat all users as pro
+    const isFree = false; // TEMP PREVIEW OVERRIDE: treat all users as turbo
     const today = new Date().toISOString().slice(0, 10);
 
     if (isFree) {
