@@ -230,7 +230,7 @@ function ChatPage() {
     setPendingImage(null);
     setPendingFile(null);
     setInput("");
-    try { localStorage.removeItem(draftKey(realm)); } catch { /* ignore */ }
+
   }, [realm]);
 
   // Daily Pro reminder
