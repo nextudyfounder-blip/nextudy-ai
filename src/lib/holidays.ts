@@ -172,6 +172,25 @@ export function getActiveEvent(now: Date = new Date()): HolidayEvent | null {
   return all.find((e) => now >= e.start && now < e.end) ?? null;
 }
 
+/** Every event window that overlaps the given month (UTC). */
+export function eventsInMonth(year: number, month: number): HolidayEvent[] {
+  const from = UTC(year, month, 1);
+  const to = UTC(year, month + 1, 1);
+  return [...eventsForYear(year), ...eventsForYear(year + 1)]
+    .filter((e) => e.start < to && e.end > from)
+    .sort((a, b) => a.start.getTime() - b.start.getTime());
+}
+
+/** Next event windows starting at or after `now`, soonest first. */
+export function upcomingEvents(now: Date = new Date(), limit = 4): HolidayEvent[] {
+  const year = now.getUTCFullYear();
+  return [...eventsForYear(year), ...eventsForYear(year + 1)]
+    .filter((e) => e.end > now)
+    .sort((a, b) => a.start.getTime() - b.start.getTime())
+    .slice(0, limit);
+}
+
+
 /**
  * Seasonal/event discounting is retired — plans are always at their standard rate.
  * Event windows now only drive the optional visual theme.
