@@ -26,6 +26,7 @@ type NavItem = { title: string; url: string; icon: typeof FileText; guestOk?: bo
 const NAV: NavItem[] = [
   { title: "Upload & Summarize", url: "/dashboard", icon: FileText },
   { title: "Saved Library", url: "/library", icon: BookMarked },
+  { title: "Calendar & Deadlines", url: "/calendar", icon: CalendarDays },
   { title: "How It Works", url: "/how-it-works", icon: HelpCircle, guestOk: true },
   { title: "What's New", url: "/whats-new", icon: Megaphone, guestOk: true },
   { title: "Feedback", url: "/feedback", icon: MessageSquare, guestOk: true },
@@ -33,8 +34,8 @@ const NAV: NavItem[] = [
 
 const SOON = [
   { title: "Flashcards & Quizzes", icon: Layers },
-  { title: "Calendar & Deadlines", icon: CalendarDays },
 ];
+
 
 /** Consecutive days (ending today or yesterday) with recorded activity. */
 function computeStreak(days: string[]): number {
