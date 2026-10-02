@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AiMessage, AiStatusIndicator } from "@/components/chat/AiMessage";
 import { ChatFrame } from "@/components/chat/ChatFrame";
-import { MOTIVATIONS } from "@/components/chat/motivations";
+import { randomRealmQuote, type RealmQuote } from "@/components/chat/realmQuotes";
 import {
   Send, Plus, Loader2, Sparkles, Paperclip, X, Mic, MicOff,
   ThumbsUp, ThumbsDown, Copy, Share2, Wand2, ShieldCheck,
@@ -49,7 +49,14 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/chat")({
   component: ChatPage,
-  head: () => ({ meta: [{ title: "AI Chat — Nextudy" }] }),
+  head: () => ({ meta: [
+    { title: "Mentor & Vanguard AI Chat — Nextudy" },
+    { name: "description", content: "Learn with Mentor or build with Vanguard in Nextudy's focused AI workspace." },
+    { property: "og:title", content: "Mentor & Vanguard AI Chat — Nextudy" },
+    { property: "og:description", content: "Learn with Mentor or build with Vanguard in Nextudy's focused AI workspace." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
 });
 
 type Msg = { id?: string; role: "user" | "assistant"; content: string };
@@ -118,7 +125,7 @@ function ChatPage() {
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [librarySearch, setLibrarySearch] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [motivation, setMotivation] = useState<string>(() => MOTIVATIONS[0]);
+  const [quote, setQuote] = useState<RealmQuote | null>(null);
 
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [pinned, setPinned] = useState<Set<string>>(() => {
@@ -127,10 +134,10 @@ function ChatPage() {
   });
   const [profileName, setProfileName] = useState<string | null>(null);
 
-  // Rotating sub-greeting: fresh pick every session refresh
+  // Pick only after hydration, then rotate for each realm switch.
   useEffect(() => {
-    setMotivation(MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)]);
-  }, []);
+    setQuote((current) => randomRealmQuote(realm, current ?? undefined));
+  }, [realm]);
 
   // Onboarding — once per account (profile-backed), with device cache for guests
   useEffect(() => {
@@ -262,6 +269,7 @@ function ChatPage() {
     setPendingImage(null);
     setPendingFile(null);
     setInput("");
+    setQuote((current) => randomRealmQuote(realm, current ?? undefined));
     try { localStorage.removeItem(draftKey(realm)); } catch { /* ignore */ }
     textareaRef.current?.focus();
   };
@@ -668,12 +676,22 @@ function ChatPage() {
     return { pinned: pinnedList, today, week, older };
   }, [filteredConvs, pinned]);
 
+  const suggestions = realm === "mentor"
+    ? [
+        "Summarise my lecture notes into exam-ready bullets",
+        "Quiz me with 10 practice questions on this chapter",
+      ]
+    : [
+        "Build a business execution plan",
+        "Analyze market, unit economics & strategy",
+      ];
+
   return (
     <AppLayout title="" hideSidebar>
-      <div className="flex h-[calc(100vh-3.5rem)] bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="chat-workspace flex h-[calc(100vh-3.5rem)] bg-background">
         {/* Chat-history sidebar (single primary sidebar, Gemini-style) */}
         {!focusMode && (
-        <aside className="hidden md:flex flex-col w-72 border-r border-border bg-card/40 backdrop-blur">
+        <aside className="hidden md:flex flex-col w-72 border-r border-border bg-card">
           <div className="p-3 border-b border-border space-y-2">
             <Button onClick={startNewChat} variant="hero" className="w-full justify-start gap-2" title="New chat (Ctrl+J)">
               <MessageSquarePlus className="h-4 w-4" />
@@ -801,18 +819,26 @@ function ChatPage() {
 
 
         {/* Main chat wrapped in the realm accent frame */}
-        <div className="flex-1 flex min-w-0 p-3 sm:p-4">
+        <div className="flex-1 flex min-w-0 p-2 sm:p-4 lg:p-6">
         <ChatFrame className="flex-1 flex flex-col min-w-0 relative bg-background overflow-hidden">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-6 pb-40">
-            <div className="max-w-3xl mx-auto space-y-6">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-20 pb-44">
+            <div className="max-w-[768px] mx-auto space-y-8">
               {messages.length === 0 && !busy && (
-                <div className="text-center pt-12 sm:pt-20 animate-fade-in space-y-4">
-                  <h1 className="text-4xl sm:text-6xl font-display font-bold tracking-tight text-realm">
-                    Study less. Know more.
-                  </h1>
-                  <p className="text-lg sm:text-xl font-display font-medium text-muted-foreground">
-                    {motivation}
+                <div className="text-center pt-12 sm:pt-24 animate-fade-in space-y-6">
+                  <p className="text-xs font-semibold uppercase text-realm">
+                    {realm === "mentor" ? "Mentor · Study Hub" : "Vanguard · Business Hub"}
                   </p>
+                  <h1 className="text-4xl sm:text-5xl font-display font-semibold text-foreground">
+                    {realm === "mentor" ? "Study less. Know more." : "Think clearly. Build decisively."}
+                  </h1>
+                  {quote && (
+                    <figure key={`${realm}-${quote.text}`} className="quote-crossfade mx-auto max-w-2xl">
+                      <blockquote className="text-lg sm:text-xl leading-relaxed text-muted-foreground">
+                        “{quote.text}”
+                      </blockquote>
+                      <figcaption className="mt-3 text-sm text-foreground/70">— {quote.author}</figcaption>
+                    </figure>
+                  )}
 
                   {showOnboarding && (
                     <div className="mx-auto mt-8 max-w-md text-left rounded-2xl border border-primary/30 bg-primary/5 backdrop-blur px-4 py-3 flex items-start gap-3 animate-fade-in">
@@ -841,22 +867,17 @@ function ChatPage() {
                     </div>
                   )}
 
-                  <div className="mx-auto mt-8 grid gap-2 sm:grid-cols-2 max-w-2xl text-left">
-                    {[
-                      "Summarise my lecture notes into exam-ready bullets",
-                      "Quiz me with 10 practice questions on this chapter",
-                      "Build a dropshipping plan: margins, CAC and break-even",
-                      "Unit economics for a pokébowl store — costs, margin, risks",
-                      "90-day launch plan for a SaaS side project",
-                      "How do I price a digital marketing agency retainer?",
-                    ].map((s) => (
-                      <button
+                  <div className="mx-auto mt-10 grid gap-3 sm:grid-cols-2 max-w-2xl text-left">
+                    {suggestions.map((s) => (
+                      <Button
                         key={s}
+                        type="button"
+                        variant="outline"
                         onClick={() => setInput(s)}
-                        className="rounded-xl border border-border px-3 py-2.5 text-sm hover:bg-muted/50 transition"
+                        className="h-auto min-h-14 justify-start whitespace-normal rounded-xl border-border bg-card px-4 py-3 text-left text-sm leading-snug shadow-none hover:bg-muted"
                       >
                         {s}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -929,44 +950,70 @@ function ChatPage() {
             </div>
           </div>
 
-          {/* Top-right floating controls */}
-          <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+          {/* Quiet floating action bar for secondary tools */}
+          <div className="absolute top-4 left-1/2 z-20 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-full border border-border bg-card/95 p-1 shadow-elegant backdrop-blur">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" variant="ghost" size="sm" className="rounded-full gap-1.5" title="Model">
+                  <Zap className="h-3.5 w-3.5 text-realm" />
+                  <span>{model === "flash" ? "Flash" : model === "pro" ? "Pro" : "Thinking"}</span>
+                  <ChevronDown className="h-3 w-3 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-56">
+                <DropdownMenuLabel>Choose model</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setModel("flash")}><Zap className="mr-2 h-3.5 w-3.5 text-realm" />Flash</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setModel("pro")} className="opacity-60"><Sparkles className="mr-2 h-3.5 w-3.5" />Pro · Soon</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setModel("thinking")} className="opacity-60"><Brain className="mr-2 h-3.5 w-3.5" />Thinking · Soon</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             {messages.length > 0 && (
-              <button
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 onClick={exportChatPdf}
                 disabled={exportingChat}
                 title="Export chat to PDF"
-                className="flex items-center gap-1.5 px-2.5 py-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition text-xs font-medium disabled:opacity-60"
+                className="rounded-full"
               >
                 {exportingChat ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-                <span className="hidden sm:inline">Export chat</span>
-              </button>
+              </Button>
             )}
             {realm === "vanguard" && !guest && (
-              <button
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 onClick={exportBlueprint}
                 disabled={exporting}
                 title="Export Launch Blueprint PDF"
-                className="flex items-center gap-1.5 px-2.5 py-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition text-xs font-medium disabled:opacity-60"
+                className="rounded-full"
               >
                 {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                <span className="hidden sm:inline">Blueprint PDF</span>
-              </button>
+              </Button>
             )}
 
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => setFocusMode((v) => !v)}
               title={focusMode ? "Exit focus mode (Ctrl+.)" : "Focus mode (Ctrl+.)"}
-              className="p-2 rounded-full bg-card/80 backdrop-blur border border-border hover:bg-accent/60 transition"
+              className="rounded-full"
             >
               {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-            </button>
+            </Button>
+            <Button type="button" variant="ghost" size="icon" className="rounded-full" onClick={() => navigate({ to: "/settings" })} title="Chat settings">
+              <Settings2 className="h-4 w-4" />
+            </Button>
           </div>
 
 
           {/* Floating input capsule */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-8 pb-4 px-4">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-[768px] mx-auto">
               {busy && <AiStatusIndicator />}
 
               {/* Attachment preview row */}
@@ -1002,7 +1049,7 @@ function ChatPage() {
 
               <form
                 onSubmit={(e) => { e.preventDefault(); send(input); }}
-                className="rounded-[28px] border border-border bg-card shadow-elegant px-2 py-2 focus-within:border-[color:var(--realm-accent)] transition-all"
+                className="rounded-2xl border border-border bg-card px-2 py-2 shadow-elegant transition-colors focus-within:border-[color:var(--realm-accent)]"
               >
                 <input ref={fileRef} type="file" accept={guest ? "image/*" : "application/pdf,image/*"} className="hidden" onChange={onFile} />
 
@@ -1038,57 +1085,6 @@ function ChatPage() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-
-                  {/* Model selector */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex items-center gap-1.5 px-3 h-9 rounded-full text-xs font-medium hover:bg-accent/40 transition text-foreground/80"
-                        title="Model"
-                      >
-                        <Zap className="h-3.5 w-3.5 text-primary" />
-                        {model === "flash" ? "Flash" : model === "pro" ? "Pro" : "Thinking"}
-                        <ChevronDown className="h-3 w-3 opacity-60" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" side="top" className="w-56">
-                      <DropdownMenuLabel>Choose model</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => setModel("flash")}>
-                        <Zap className="h-3.5 w-3.5 mr-2 text-primary" />
-                        <div className="flex-1">
-                          <div className="text-sm">Flash</div>
-                          <div className="text-[10px] text-muted-foreground">Fastest, balanced quality</div>
-                        </div>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setModel("pro")} className="opacity-60">
-                        <Sparkles className="h-3.5 w-3.5 mr-2" />
-                        <div className="flex-1">
-                          <div className="text-sm">Pro</div>
-                          <div className="text-[10px] text-muted-foreground">Deeper reasoning · Soon</div>
-                        </div>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setModel("thinking")} className="opacity-60">
-                        <Brain className="h-3.5 w-3.5 mr-2" />
-                        <div className="flex-1">
-                          <div className="text-sm">Thinking</div>
-                          <div className="text-[10px] text-muted-foreground">Step-by-step · Soon</div>
-                        </div>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <Button
-                    type="button" variant="ghost" size="icon"
-                    className="rounded-full shrink-0 h-9 w-9"
-                    onClick={() => navigate({ to: "/settings" })}
-                    disabled={busy}
-                    title="Chat settings"
-                  >
-                    <Settings2 className="h-4 w-4" />
-                  </Button>
-
 
                   <div className="flex-1" />
 
