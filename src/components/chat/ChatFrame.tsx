@@ -5,5 +5,5 @@ import type { ReactNode } from "react";
  * No LED, glow or animated light effects — the inside stays flat and solid.
  */
 export function ChatFrame({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`realm-border rounded-3xl ${className}`}>{children}</div>;
+  return <div className={`realm-border rounded-2xl ${className}`}>{children}</div>;
 }
