@@ -54,22 +54,23 @@ export function AppLayout({ children, title, hideSidebar = false }: Props) {
       <div className="flex-1 flex flex-col min-w-0 relative">
         <header className="h-14 flex items-center gap-2 px-3 sm:px-4 sticky top-0 z-20 border-b border-border/60 bg-background">
           {!hideSidebar && <SidebarTrigger />}
-          <Button variant="ghost" size="sm" asChild className="gap-1.5">
-            <Link to="/"><Home className="h-4 w-4" /><span className="hidden sm:inline">Home</span></Link>
+          <Button variant="ghost" size="sm" asChild className="gap-1.5 hidden md:inline-flex">
+            <Link to="/"><Home className="h-4 w-4" /><span className="hidden lg:inline">Home</span></Link>
           </Button>
+          <RealmSwitcher />
           {title && <h1 className="font-display font-semibold truncate ml-1">{title}</h1>}
           <div className="ml-auto flex items-center gap-1.5">
             <SeasonBadge />
-            <RealmSwitcher />
-            <Button
-              size="sm"
-              onClick={() => navigate({ to: "/subscriptions" })}
-              className="bg-gradient-accent text-white hover:opacity-90 gap-1.5"
-              title="Upgrade to Pro"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Upgrade
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => navigate({ to: "/settings" })} title="Settings">
+              <Settings className="h-4 w-4" />
             </Button>
+            <button
+              onClick={() => navigate({ to: user ? "/profile" : "/auth" })}
+              className="h-8 w-8 rounded-full bg-gradient-accent grid place-items-center text-[11px] font-semibold text-primary-foreground"
+              title="Profile"
+            >
+              {(user?.email ?? "G").slice(0, 1).toUpperCase()}
+            </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
