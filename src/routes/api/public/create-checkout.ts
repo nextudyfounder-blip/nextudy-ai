@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { createSubscriptionCheckout } from "@/lib/stripe";
-import { PLANS } from "@/lib/plans";
+import { PLANS, promoDiscount } from "@/lib/plans";
 
 
 const CORS = {
@@ -14,6 +14,7 @@ const CORS = {
 
 const InputSchema = z.object({
   tier: z.enum(["pro", "turbo"]),
+  promo: z.string().max(40).optional(),
 });
 
 function json(status: number, body: unknown) {
@@ -46,11 +47,12 @@ export const Route = createFileRoute("/api/public/create-checkout")({
 
           const parsed = InputSchema.safeParse(await request.json().catch(() => ({})));
           if (!parsed.success) return json(400, { error: "Invalid payload" });
-          const { tier } = parsed.data;
+          const { tier, promo } = parsed.data;
 
           // Seasonal discounting is retired — always charge the standard rate.
           const plan = PLANS.find((p) => p.id === tier)!;
-          const priceCents = Math.round(plan.price * 100);
+          const off = promoDiscount(promo);
+          const priceCents = Math.max(50, Math.round((plan.price - off) * 100));
 
           const origin = new URL(request.url).origin;
           const session = await createSubscriptionCheckout({
@@ -63,6 +65,7 @@ export const Route = createFileRoute("/api/public/create-checkout")({
             metadata: {
               user_id: userData.user.id,
               tier,
+              promo: off > 0 ? String(promo).toUpperCase() : "",
             },
           });
 
