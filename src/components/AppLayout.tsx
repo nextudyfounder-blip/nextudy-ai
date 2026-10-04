@@ -13,7 +13,7 @@ import { SeasonBadge } from "@/components/SeasonTheme";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Home, Sparkles, MoreVertical, Share2 } from "lucide-react";
+import { Home, Settings, MoreVertical, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
