@@ -79,8 +79,19 @@ export function formatEur(amount: number): string {
   return `€${amount % 1 === 0 ? amount.toFixed(0) : amount.toFixed(2)}`;
 }
 
-export const REFERRAL_NOTE = "Invite friends to get €1.00 off your first month!";
-export const REFERRAL_DISCOUNT_EUR = 1;
+export const REFERRAL_NOTE = "Invite friends to get €2.00 off your first month!";
+export const REFERRAL_DISCOUNT_EUR = 2;
+
+/** Seasonal promo codes (EUR off the first month). Validated again on the server at checkout. */
+export const PROMO_CODES: Record<string, { off: number; label: string }> = {
+  BACKTOSCHOOL: { off: 1, label: "Back to School · €1 off" },
+  EXAMPREP: { off: 1, label: "Exam Prep · €1 off" },
+  NEWYEAR: { off: 1.5, label: "New Year · €1.50 off" },
+};
+
+export function promoDiscount(code?: string | null): number {
+  return PROMO_CODES[(code ?? "").trim().toUpperCase()]?.off ?? 0;
+}
 
 /** Normalizes any legacy plan value from the database to the current three tiers. */
 export function normalizePlan(value?: string | null): PlanId {

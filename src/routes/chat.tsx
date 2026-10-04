@@ -40,11 +40,14 @@ import {
   MessageSquarePlus, MoreHorizontal, Pencil, Trash2, Brain,
   Search, Image as ImageIcon, Library, FileText, File as FileIcon,
   Pin, PinOff, Maximize2, Minimize2, Keyboard, ChevronDown, Zap,
-  Settings2, Info, FileDown,
+  Settings2, Info, FileDown, Menu,
 } from "lucide-react";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { PlansBillingDialog } from "@/components/workspace/PlansBillingDialog";
+import { WhatsNewDrawer, FeedbackDrawer } from "@/components/workspace/UtilityDrawers";
 
 
 export const Route = createFileRoute("/chat")({
@@ -128,6 +131,10 @@ function ChatPage() {
   const [quote, setQuote] = useState<RealmQuote | null>(null);
 
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [mobileNav, setMobileNav] = useState(false);
+  const [billingOpen, setBillingOpen] = useState(false);
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [pinned, setPinned] = useState<Set<string>>(() => {
     if (typeof window === "undefined") return new Set();
     try { return new Set(JSON.parse(localStorage.getItem("nextudy-pinned-chats") || "[]")); } catch { return new Set(); }
@@ -663,6 +670,7 @@ function ChatPage() {
   const grouped = useMemo(() => {
     const pinnedList: Conv[] = [];
     const today: Conv[] = [];
+    const yesterday: Conv[] = [];
     const week: Conv[] = [];
     const older: Conv[] = [];
     const now = Date.now();
@@ -670,10 +678,11 @@ function ChatPage() {
       if (pinned.has(c.id)) { pinnedList.push(c); continue; }
       const age = (now - new Date(c.updated_at).getTime()) / 86_400_000;
       if (age < 1) today.push(c);
+      else if (age < 2) yesterday.push(c);
       else if (age < 7) week.push(c);
       else older.push(c);
     }
-    return { pinned: pinnedList, today, week, older };
+    return { pinned: pinnedList, today, yesterday, week, older };
   }, [filteredConvs, pinned]);
 
   const suggestions = realm === "mentor"
@@ -686,14 +695,10 @@ function ChatPage() {
         "Analyze market, unit economics & strategy",
       ];
 
-  return (
-    <AppLayout title="" hideSidebar>
-      <div className="chat-workspace flex h-[calc(100vh-3.5rem)] bg-background">
-        {/* Chat-history sidebar (single primary sidebar, Gemini-style) */}
-        {!focusMode && (
-        <aside className="hidden md:flex flex-col w-72 border-r border-border bg-card">
+  const sidebarBody = (
+    <>
           <div className="p-3 border-b border-border space-y-2">
-            <Button onClick={startNewChat} variant="hero" className="w-full justify-start gap-2" title="New chat (Ctrl+J)">
+            <Button onClick={() => { startNewChat(); setMobileNav(false); }} variant="hero" className="w-full justify-start gap-2" title="New chat (Ctrl+J)">
               <MessageSquarePlus className="h-4 w-4" />
               New chat
             </Button>
@@ -709,14 +714,6 @@ function ChatPage() {
                 />
               </div>
             )}
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="w-full flex items-center gap-2 rounded-md border border-dashed border-border/70 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-accent/30 transition"
-              title="Attach an image or PDF"
-            >
-              <ImageIcon className="h-3.5 w-3.5" />
-              <span>Attach image or PDF</span>
-            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-4 text-sm">
@@ -733,6 +730,7 @@ function ChatPage() {
                 {[
                   { label: "Pinned", items: grouped.pinned, icon: Pin },
                   { label: "Today", items: grouped.today },
+                  { label: "Yesterday", items: grouped.yesterday },
                   { label: "Previous 7 days", items: grouped.week },
                   { label: "Older", items: grouped.older },
                 ].map(({ label, items, icon: Icon }) => items.length > 0 && (
@@ -742,7 +740,7 @@ function ChatPage() {
                     </div>
                     {items.map((c) => (
                       <div key={c.id} className={`group flex items-center gap-1 rounded-lg px-2 py-1.5 hover:bg-accent/40 cursor-pointer ${convId === c.id ? "bg-accent/60" : ""}`}>
-                        <button onClick={() => openConv(c.id)} className="flex-1 text-left truncate flex items-center gap-1.5 min-w-0">
+                        <button onClick={() => { openConv(c.id); setMobileNav(false); }} className="flex-1 text-left truncate flex items-center gap-1.5 min-w-0">
                           {pinned.has(c.id) && <Pin className="h-3 w-3 shrink-0 text-primary fill-primary" />}
                           <span className="truncate">{shortenTitle(c.title)}</span>
                         </button>
@@ -772,24 +770,34 @@ function ChatPage() {
                   </div>
                 )}
 
-                {/* Library — replaces the old second sidebar */}
                 <div className="pt-2">
-                  <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">Library</div>
-                  <button
-                    onClick={() => setLibraryOpen(true)}
-                    className="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-accent/40 text-left"
-                    title="Browse your uploaded documents"
-                  >
-                    <div className="h-6 w-6 rounded-md bg-primary/10 text-primary grid place-items-center">
-                      <Library className="h-3.5 w-3.5" />
-                    </div>
-                    <span className="text-xs">Open document library</span>
-                  </button>
+                  <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-muted-foreground">Quick access</div>
+                  {[
+                    { label: "Saved workspaces", icon: Library, on: () => navigate({ to: "/library" }) },
+                    { label: "Documents", icon: FileText, on: () => setLibraryOpen(true) },
+                    { label: "PDFs", icon: FileIcon, on: () => { setLibrarySearch(".pdf"); setLibraryOpen(true); } },
+                  ].map((q) => (
+                    <button key={q.label} onClick={() => { q.on(); setMobileNav(false); }} className="w-full flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-accent/40 text-left text-xs">
+                      <q.icon className="h-3.5 w-3.5 text-realm" />{q.label}
+                    </button>
+                  ))}
                 </div>
               </>
             )}
           </div>
 
+          <div className="border-t border-border p-2 space-y-0.5">
+            {[
+              { label: "Plans & Subscriptions", icon: Zap, on: () => setBillingOpen(true) },
+              { label: "Settings", icon: Settings2, on: () => navigate({ to: "/settings" }) },
+              { label: "What's New", icon: Info, on: () => setWhatsNewOpen(true) },
+              { label: "Feedback", icon: MessageSquarePlus, on: () => setFeedbackOpen(true) },
+            ].map((u) => (
+              <button key={u.label} onClick={() => { u.on(); setMobileNav(false); }} className="w-full flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-accent/40 text-left text-xs text-muted-foreground hover:text-foreground">
+                <u.icon className="h-3.5 w-3.5" />{u.label}
+              </button>
+            ))}
+          </div>
           {/* Compact user footer with Settings gear next to name (Gemini-style) */}
           <div className="border-t border-border p-2">
             {user ? (
@@ -814,19 +822,36 @@ function ChatPage() {
               </button>
             )}
           </div>
-        </aside>
+    </>
+  );
+
+  return (
+    <AppLayout title="" hideSidebar>
+      <div className="chat-workspace flex h-[calc(100vh-3.5rem)] bg-background">
+        {/* Chat-history sidebar (single primary sidebar, Gemini-style) */}
+        {!focusMode && (
+        <aside className="hidden md:flex flex-col w-72 border-r border-border bg-card">{sidebarBody}</aside>
         )}
+        <Sheet open={mobileNav} onOpenChange={setMobileNav}>
+          <SheetContent side="left" className="w-72 p-0 flex flex-col bg-card">{sidebarBody}</SheetContent>
+        </Sheet>
+        <PlansBillingDialog open={billingOpen} onOpenChange={setBillingOpen} />
+        <WhatsNewDrawer open={whatsNewOpen} onOpenChange={setWhatsNewOpen} />
+        <FeedbackDrawer open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
 
         {/* Main chat wrapped in the realm accent frame */}
         <div className="flex-1 flex min-w-0 p-2 sm:p-4 lg:p-6">
         <ChatFrame className="flex-1 flex flex-col min-w-0 relative bg-background overflow-hidden">
+          <button onClick={() => setMobileNav(true)} className="md:hidden absolute left-3 top-3 z-20 p-2 rounded-xl border border-border bg-card" title="Open menu" aria-label="Open menu">
+            <Menu className="h-4 w-4" />
+          </button>
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 pt-20 pb-44">
             <div className="max-w-[768px] mx-auto space-y-8">
               {messages.length === 0 && !busy && (
                 <div className="text-center pt-12 sm:pt-24 animate-fade-in space-y-6">
                   <p className="text-xs font-semibold uppercase text-realm">
-                    {realm === "mentor" ? "Mentor · Study Hub" : "Vanguard · Business Hub"}
+                    {realm === "mentor" ? "Mentor · Academic Hub" : "Vanguard · Business Hub"}
                   </p>
                   <h1 className="text-4xl sm:text-5xl font-display font-semibold text-foreground">
                     {realm === "mentor" ? "Study less. Know more." : "Think clearly. Build decisively."}
