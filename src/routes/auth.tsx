@@ -25,6 +25,11 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref) localStorage.setItem("nextudy-ref", ref);
+  }, []);
+
+  useEffect(() => {
     if (!loading && user) navigate({ to: "/chat" });
   }, [user, loading, navigate]);
 

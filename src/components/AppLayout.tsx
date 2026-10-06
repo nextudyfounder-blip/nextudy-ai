@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Home, Settings, MoreVertical, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { claimReferral } from "@/lib/billing.functions";
 
 interface Props {
   children: ReactNode;
@@ -30,6 +32,17 @@ export function AppLayout({ children, title, hideSidebar = false }: Props) {
   useEffect(() => {
     if (!loading && !user && !guest) navigate({ to: "/auth" });
   }, [user, guest, loading, navigate]);
+
+  const claimFn = useServerFn(claimReferral);
+  useEffect(() => {
+    if (!user) return;
+    const code = localStorage.getItem("nextudy-ref");
+    if (!code) return;
+    localStorage.removeItem("nextudy-ref");
+    // Only brand-new accounts can be credited as a referral.
+    if (Date.now() - new Date(user.created_at).getTime() > 3 * 86_400_000) return;
+    void claimFn({ data: { code } }).catch(() => undefined);
+  }, [user, claimFn]);
 
   if (loading || (!user && !guest)) {
     return (
