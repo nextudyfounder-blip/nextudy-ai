@@ -21,6 +21,8 @@
  */
 
 @theme inline {
+  --color-mentor: oklch(0.66 0.19 300);
+  --color-vanguard: oklch(0.72 0.13 178);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
