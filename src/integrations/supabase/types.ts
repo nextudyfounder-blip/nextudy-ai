@@ -238,6 +238,33 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          created_at: string
+          credit_cents: number
+          id: string
+          redeemed_at: string | null
+          referred_id: string
+          referrer_id: string
+        }
+        Insert: {
+          created_at?: string
+          credit_cents?: number
+          id?: string
+          redeemed_at?: string | null
+          referred_id: string
+          referrer_id: string
+        }
+        Update: {
+          created_at?: string
+          credit_cents?: number
+          id?: string
+          redeemed_at?: string | null
+          referred_id?: string
+          referrer_id?: string
+        }
+        Relationships: []
+      }
       team_invitations: {
         Row: {
           accepted_at: string | null
@@ -309,7 +336,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_referral: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
