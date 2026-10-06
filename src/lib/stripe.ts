@@ -144,11 +144,20 @@ export async function createSubscriptionCheckout(input: {
   metadata?: Record<string, string>;
   /** Overrides the computed price, e.g. a renewal rate locked during an event. */
   priceCentsOverride?: number;
+  /** One-time discount (first billing cycle only), applied as a Stripe coupon. */
+  discountCents?: number;
 }): Promise<CheckoutSession> {
   const plan = PLANS.find((p) => p.id === (input.tier === "teams" ? "pro" : input.tier))!;
   const priceCents = input.priceCentsOverride ?? Math.round(activePrice(plan) * 100);
   const productName = `Nextudy ${plan.name}`;
   const quantity = input.tier === "pro" ? 1 : Math.max(1, input.seats ?? 1);
+  let couponId: string | undefined;
+  if (input.discountCents && input.discountCents > 0) {
+    const coupon = await stripeRequest<{ id: string }>("/coupons", {
+      amount_off: input.discountCents, currency: "eur", duration: "once", name: "Nextudy discount",
+    });
+    couponId = coupon.id;
+  }
 
   return stripeRequest<CheckoutSession>("/checkout/sessions", {
     mode: "subscription",
@@ -160,6 +169,7 @@ export async function createSubscriptionCheckout(input: {
     "line_items[0][price_data][unit_amount]": priceCents,
     "line_items[0][price_data][recurring][interval]": "month",
     "line_items[0][price_data][product_data][name]": productName,
+    ...(couponId ? { "discounts[0][coupon]": couponId } : {}),
     ...(input.metadata
       ? Object.fromEntries(
           Object.entries(input.metadata).map(([k, v]) => [`metadata[${k}]`, v]),

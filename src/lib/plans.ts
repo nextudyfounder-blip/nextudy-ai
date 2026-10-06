@@ -79,7 +79,7 @@ export function formatEur(amount: number): string {
   return `€${amount % 1 === 0 ? amount.toFixed(0) : amount.toFixed(2)}`;
 }
 
-export const REFERRAL_NOTE = "Invite friends to get €2.00 off your first month!";
+export const REFERRAL_NOTE = "Invite a friend and get €2.00 off your next billing cycle.";
 export const REFERRAL_DISCOUNT_EUR = 2;
 
 /** Seasonal promo codes (EUR off the first month). Validated again on the server at checkout. */

@@ -15,6 +15,7 @@ const CORS = {
 const InputSchema = z.object({
   tier: z.enum(["pro", "turbo"]),
   promo: z.string().max(40).optional(),
+  useReferral: z.boolean().optional(),
 });
 
 function json(status: number, body: unknown) {
@@ -47,12 +48,23 @@ export const Route = createFileRoute("/api/public/create-checkout")({
 
           const parsed = InputSchema.safeParse(await request.json().catch(() => ({})));
           if (!parsed.success) return json(400, { error: "Invalid payload" });
-          const { tier, promo } = parsed.data;
+          const { tier, promo, useReferral } = parsed.data;
 
-          // Seasonal discounting is retired — always charge the standard rate.
           const plan = PLANS.find((p) => p.id === tier)!;
-          const off = promoDiscount(promo);
-          const priceCents = Math.max(50, Math.round((plan.price - off) * 100));
+          const priceCents = Math.round(plan.price * 100);
+          const promoCents = Math.round(promoDiscount(promo) * 100);
+          let referralIds: string[] = [];
+          let referralCents = 0;
+          if (useReferral) {
+            const { data: refs } = await supabase
+              .from("referrals").select("id, credit_cents")
+              .eq("referrer_id", userData.user.id).is("redeemed_at", null);
+            for (const r of refs ?? []) { referralIds.push(r.id); referralCents += r.credit_cents; }
+          }
+          // Stripe needs at least €0.50 charged; cap the one-time discount.
+          const maxOff = Math.max(0, priceCents - 50);
+          const discountCents = Math.min(maxOff, promoCents + referralCents);
+          if (referralCents === 0) referralIds = [];
 
           const origin = new URL(request.url).origin;
           const session = await createSubscriptionCheckout({
@@ -62,14 +74,20 @@ export const Route = createFileRoute("/api/public/create-checkout")({
             successUrl: `${origin}/subscriptions?checkout=success`,
             cancelUrl: `${origin}/subscriptions?checkout=cancelled`,
             priceCentsOverride: priceCents,
+            discountCents,
             metadata: {
               user_id: userData.user.id,
               tier,
-              promo: off > 0 ? String(promo).toUpperCase() : "",
+              promo: promoCents > 0 ? String(promo).toUpperCase() : "",
+              referral_cents: String(referralCents),
             },
           });
 
 
+          if (referralIds.length) {
+            const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+            await supabaseAdmin.from("referrals").update({ redeemed_at: new Date().toISOString() }).in("id", referralIds);
+          }
           return json(200, { url: session.url, id: session.id });
         } catch (err) {
           console.error("[create-checkout] failed", err);
